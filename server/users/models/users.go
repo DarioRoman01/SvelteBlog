@@ -16,6 +16,7 @@ type User struct {
 	PhoneNumber string         `json:"-" gorm:"unique"`
 	Password    string         `json:"-"`
 	IsVerified  bool           `json:"is_verified" gorm:"default=false"`
+	Follow      []*User        `gorm:"many2many:user_follow"`
 	Profile     Profile
 	Posts       []models.Post
 	Comments    []models.Comment
