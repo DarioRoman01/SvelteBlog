@@ -49,3 +49,13 @@ func (p *ProfileViews) UpdateProfileView(c echo.Context) error {
 
 	return c.JSON(200, newProfile)
 }
+
+func (p *ProfileViews) GetProfileView(c echo.Context) error {
+	username := c.Param("username")
+	profile := profileController.GetProfileByUsername(username, p.DB)
+	if profile == nil {
+		return echo.NewHTTPError(404, "unable to find that user")
+	}
+
+	return c.JSON(200, profile)
+}
