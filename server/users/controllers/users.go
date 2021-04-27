@@ -56,6 +56,46 @@ func (u *UsersController) LoginByEmail(input *models.UserLoginInput, db *gorm.DB
 	return user, nil
 }
 
+func (u *UsersController) GetUserFollowers(userId, limit int, cursor *string, db *gorm.DB) ([]*models.User, bool) {
+	var users []*models.User
+
+	if cursor != nil {
+		db.Raw(`
+			SELECT u.*,
+			FROM "users"
+			WHERE id in (
+				SELECT follow_id 
+				FROM "user_follow"
+				WHERE user_id = ?
+			)
+			AND u.created_at < ?
+			ORDER BY u.created_at DESC
+			LIMIT ?
+		`, userId, cursor, limit).Find(&users)
+	} else {
+		db.Raw(`
+			SELECT u.*,
+			FROM "users"
+			WHERE id in (
+				SELECT follow_id 
+				FROM "user_follow"
+				WHERE user_id = ?
+			)
+			ORDER BY u.created_at DESC
+			LIMIT ?
+		`, userId, limit).Find(&users)
+	}
+
+	if len(users) == 0 {
+		return nil, false
+	}
+	if len(users) == limit {
+		return users[0 : limit-1], true
+	}
+
+	return users[0 : len(users)-1], false
+}
+
 // Change Password change user password
 func (u *UsersController) ChangePassword(id, newPassword string, db *gorm.DB) (*models.User, *echo.HTTPError) {
 	user := u.GetUserByid(id, db)

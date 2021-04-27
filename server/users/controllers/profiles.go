@@ -56,3 +56,37 @@ func (p *ProfileController) GetProfileByUsername(username string, db *gorm.DB) *
 
 	return &profile
 }
+
+func (p *ProfileController) Follow(userFromID, userToID int, db *gorm.DB) bool {
+	var userFrom models.User
+	db.Table("users").Where("id = ?", userFromID).Find(&userFrom)
+	if userFrom.ID == 0 {
+		return false
+	}
+
+	var userTo models.User
+	db.Table("users").Where("id = ?", userFromID).Find(&userTo)
+	if userTo.ID == 0 {
+		return false
+	}
+
+	err := db.Model(&userFrom).Association("Follow").Append(&userTo)
+	return err != nil
+}
+
+func (p *ProfileController) UnFollow(userFromID, userToID int, db *gorm.DB) bool {
+	var userFrom models.User
+	db.Table("users").Where("id = ?", userFromID).Find(&userFrom)
+	if userFrom.ID == 0 {
+		return false
+	}
+
+	var userTo models.User
+	db.Table("users").Where("id = ?", userFromID).Find(&userTo)
+	if userTo.ID == 0 {
+		return false
+	}
+
+	err := db.Model(&userFrom).Association("Follow").Delete(&userFrom)
+	return err != nil
+}
