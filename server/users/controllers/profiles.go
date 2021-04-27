@@ -10,7 +10,7 @@ import (
 
 type ProfileController struct{}
 
-func (p *ProfileController) CreateProfile(userID uint, profile *models.Profile, db *gorm.DB) *echo.HTTPError {
+func (p *ProfileController) CreateProfile(profile *models.Profile, db *gorm.DB) *echo.HTTPError {
 	usernameTaken := p.getProfileByUsername(profile.Username, db)
 	if usernameTaken {
 		return utils.InvalidInput("username", "username already in use")
