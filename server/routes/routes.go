@@ -7,6 +7,7 @@ import (
 	"log"
 
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 func SetRoutes(e *echo.Echo) {
@@ -17,10 +18,19 @@ func SetRoutes(e *echo.Echo) {
 
 	psql.AutoMigrate(&models.User{}, &models.Profile{})
 	usersViews := &views.UsersViews{DB: psql}
+	profileViews := &views.ProfileViews{DB: psql}
+
+	e.Use(CORSconfig())
+	e.Use(JwtMiddleware())
+	e.Use(middleware.RemoveTrailingSlash())
 
 	e.POST("/register", usersViews.SignupView)
 	e.POST("/login", usersViews.LoginView)
 	e.POST("/change-password", usersViews.ChangePasswordView)
 	e.POST("/forgot-password", usersViews.ForgotPasswordView)
 	e.POST("/verify", usersViews.VerifyAccountView)
+
+	e.PATCH("/profile/:id", profileViews.UpdateProfileView)
+	e.POST("/profile", profileViews.CreateProfileView)
+	e.GET("/profile/:username", profileViews.GetProfileView)
 }
