@@ -12,8 +12,8 @@ type ProfileController struct{}
 
 // handle profile creation
 func (p *ProfileController) CreateProfile(profile *models.Profile, db *gorm.DB) *echo.HTTPError {
-	usernameTaken := p.getProfileByUsername(profile.Username, db)
-	if usernameTaken {
+	usernameTaken := p.GetProfileByUsername(profile.Username, db)
+	if usernameTaken != nil {
 		return utils.InvalidInput("username", "username already in use")
 	}
 
@@ -30,7 +30,7 @@ func (p *ProfileController) UpdateProfile(userID uint, id uint, data *models.Pro
 
 	db.Model(&models.Profile{}).Where("id = ?", id).Find(&storeProfile)
 
-	if storeProfile.ID == 0 {
+	if storeProfile.UserID == 0 {
 		return nil, echo.NewHTTPError(404, "profile not found")
 	}
 
@@ -45,10 +45,14 @@ func (p *ProfileController) UpdateProfile(userID uint, id uint, data *models.Pro
 	return &storeProfile, nil
 }
 
-func (p *ProfileController) getProfileByUsername(username string, db *gorm.DB) bool {
+func (p *ProfileController) GetProfileByUsername(username string, db *gorm.DB) *models.Profile {
 	var profile models.Profile
 
 	db.Model(&models.Profile{}).Where("username = ?", username).Find(&profile)
 
-	return profile.ID != 0
+	if profile.UserID == 0 {
+		return nil
+	}
+
+	return &profile
 }
