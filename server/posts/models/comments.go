@@ -9,3 +9,8 @@ type Comment struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 	Body      string    `json:"body"`
 }
+
+type PaginatedComments struct {
+	Comments []Comment `json:"comments"`
+	HasMore  bool      `json:"hasMore"`
+}

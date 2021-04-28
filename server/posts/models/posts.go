@@ -19,3 +19,8 @@ type Post struct {
 	Comments   []Comment      `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:PostID;references:ID;"`
 	Liked      []Like
 }
+
+type PaginatedPosts struct {
+	Posts   []Post `json:"posts"`
+	HasMore bool   `json:"hasMore"`
+}
