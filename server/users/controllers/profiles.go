@@ -71,7 +71,12 @@ func (p *ProfileController) Follow(userFromID, userToID int, db *gorm.DB) bool {
 	}
 
 	err := db.Model(&userFrom).Association("Follow").Append(&userTo)
-	return err != nil
+	if err != nil {
+		return false
+	}
+
+	db.Model(&userTo.Profile).Update("followers = followers + ?", 1)
+	return true
 }
 
 func (p *ProfileController) UnFollow(userFromID, userToID int, db *gorm.DB) bool {
@@ -88,5 +93,10 @@ func (p *ProfileController) UnFollow(userFromID, userToID int, db *gorm.DB) bool
 	}
 
 	err := db.Model(&userFrom).Association("Follow").Delete(&userFrom)
-	return err != nil
+	if err != nil {
+		return false
+	}
+
+	db.Model(&userTo.Profile).Update("followers = followers - ?", 1)
+	return true
 }
