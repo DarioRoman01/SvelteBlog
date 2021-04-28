@@ -11,7 +11,7 @@ type Post struct {
 	CreatedAt  time.Time      `json:"createdAt"`
 	UpdatedAt  time.Time      `json:"updatedAt"`
 	DeletedAt  gorm.DeletedAt `json:"-" gorm:"index"`
-	UserID     uint           `json:"creator_id"`
+	UserID     uint           `json:"creatorId"`
 	StateValue uint16         `json:"stateValue" gorm:"-:migration"`
 	Title      string         `json:"title"`
 	Body       string         `json:"body"`

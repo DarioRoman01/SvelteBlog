@@ -3,7 +3,6 @@ package views
 import (
 	"blogv2/posts/controllers"
 	"blogv2/posts/models"
-	"blogv2/utils"
 	"strconv"
 
 	"github.com/labstack/echo/v4"
@@ -22,8 +21,8 @@ func (p *PostsViews) CreatePostView(c echo.Context) error {
 		return echo.NewHTTPError(423, "unable to parse request body")
 	}
 
-	userId, _ := strconv.Atoi(utils.UserIDFromToken(c))
-	post.UserID = uint(userId)
+	userId := c.Request().Context().Value("user").(uint)
+	post.UserID = userId
 	httpErr := postsController.CreatePost(&post, p.DB)
 	if httpErr != nil {
 		return c.JSON(httpErr.Code, httpErr.Message)
@@ -44,7 +43,7 @@ func (p *PostsViews) GetPostView(c echo.Context) error {
 
 func (p *PostsViews) DeletePostView(c echo.Context) error {
 	id, _ := strconv.Atoi(c.Param("id"))
-	userId, _ := strconv.Atoi(utils.UserIDFromToken(c))
+	userId := c.Request().Context().Value("user").(int)
 	err := postsController.DeletePost(id, userId, p.DB)
 	if err != nil {
 		return c.JSON(err.Code, err.Message)
@@ -60,7 +59,7 @@ func (p *PostsViews) GetPostsView(c echo.Context) error {
 	}
 
 	cursor := c.QueryParam("cursor")
-	userId, _ := strconv.Atoi(utils.UserIDFromToken(c))
+	userId := c.Request().Context().Value("user").(int)
 	posts, hasMore := postsController.GetPosts(limit, &cursor, userId, p.DB)
 
 	return c.JSON(200, models.PaginatedPosts{Posts: posts, HasMore: hasMore})
@@ -74,7 +73,7 @@ func (p *PostsViews) ToggleLikeView(c echo.Context) error {
 	}
 
 	postId, _ := strconv.Atoi(c.Param("id"))
-	userId, _ := strconv.Atoi(utils.UserIDFromToken(c))
+	userId := c.Request().Context().Value("user").(int)
 	likedOrDisliked := postsController.SetLike(postId, userId, body["value"], p.DB)
 
 	if !likedOrDisliked {
@@ -90,7 +89,7 @@ func (p *PostsViews) GetUserPostsView(c echo.Context) error {
 		return echo.NewHTTPError(400, "invalid limit")
 	}
 
-	userId, _ := strconv.Atoi(utils.UserIDFromToken(c))
+	userId := c.Request().Context().Value("user").(int)
 	profileId, _ := strconv.Atoi(c.Param("id"))
 	cursor := c.QueryParam("cursor")
 

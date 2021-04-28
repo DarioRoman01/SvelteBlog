@@ -3,7 +3,6 @@ package views
 import (
 	"blogv2/posts/controllers"
 	"blogv2/posts/models"
-	"blogv2/utils"
 	"strconv"
 
 	"github.com/labstack/echo/v4"
@@ -23,9 +22,9 @@ func (cv *CommentsViews) AddCommentView(c echo.Context) error {
 	}
 
 	postId, _ := strconv.Atoi(c.Param("id"))
-	userId, _ := strconv.Atoi(utils.UserIDFromToken(c))
+	userId := c.Request().Context().Value("user").(uint)
 	comment.PostID = uint(postId)
-	comment.UserID = uint(userId)
+	comment.UserID = userId
 
 	httpErr := commentsController.AddComment(&comment, cv.DB)
 	if httpErr != nil {
@@ -53,8 +52,7 @@ func (cv *CommentsViews) GetPostCommentsView(c echo.Context) error {
 
 func (cv *CommentsViews) DeleteCommentView(c echo.Context) error {
 	commentId, _ := strconv.Atoi(c.Param("id"))
-	userId, _ := strconv.Atoi(utils.UserIDFromToken(c))
-
+	userId := c.Request().Context().Value("user").(int)
 	err := commentsController.DeleteComment(commentId, userId, cv.DB)
 	if err != nil {
 		return c.JSON(err.Code, err.Message)
