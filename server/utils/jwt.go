@@ -3,10 +3,10 @@ package utils
 import (
 	"log"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/gorilla/sessions"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 )
@@ -16,6 +16,8 @@ func init() {
 		log.Fatal("unable to read env: ", err)
 	}
 }
+
+var Store = sessions.NewCookieStore([]byte(os.Getenv("SECRET-KEY")))
 
 func GenerateToken(id uint, tokenType string) (string, *echo.HTTPError) {
 
@@ -31,24 +33,4 @@ func GenerateToken(id uint, tokenType string) (string, *echo.HTTPError) {
 	}
 
 	return token, nil
-}
-
-func GetToken(c echo.Context) (*jwt.Token, jwt.MapClaims) {
-	headerToken := c.Request().Header.Get("x-auth-token")
-	strToken := strings.Split(headerToken, " ")[1]
-	claims := jwt.MapClaims{}
-
-	token, err := jwt.ParseWithClaims(strToken, claims, func(t *jwt.Token) (interface{}, error) {
-		return []byte(os.Getenv("JWT-SECRET")), nil
-	})
-	if err != nil {
-		return nil, nil
-	}
-
-	return token, claims
-}
-
-func UserIDFromToken(c echo.Context) string {
-	_, claims := GetToken(c)
-	return claims["user_id"].(string)
 }
