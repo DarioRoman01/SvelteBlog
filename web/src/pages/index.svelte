@@ -3,8 +3,16 @@
 </script>
 
 <MaterialApp>
-    <div class="d-flex justify-center">
-        <h1 class="text-h1">Hello world</h1>
-        <Button class="primary-color">Click me owo</Button>
-    </div>
+	<div class="d-flex justify-center">
+		<div>
+			<h1 class="text-h1">
+				Welcome to .Blog
+			</h1>
+		</div>
+		<div>
+			<h3 class="text-h3">
+				✨The best site to share your ideas✨
+			</h3>
+		</div>
+	</div>
 </MaterialApp>
