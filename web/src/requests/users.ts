@@ -1,11 +1,31 @@
+const url = process.env.API_URL
+const headers = {
+  Accept: "application/json",
+  "Content-Type": "application/json",
+}
+
+// custom error class for users signup and register requests
+export class CustomError extends Error {
+  constructor(public field: string, public message: string) {
+    super(message);
+    this.field = field;
+
+  }
+}
+
+// user data that is retrieved from the server.
+export interface User {
+  id: number;
+  createdAt: string;
+  updatedAt: string;
+  email: string;
+}
+
 // api call with generics for GET request
 export default async function api<T>(url: string): Promise<T> {
   const response = await fetch(url, {
     credentials: 'include',
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
+    headers: headers,
   })
   if (!response.ok) {
     throw new Error("something wrong happend :(")
@@ -14,20 +34,17 @@ export default async function api<T>(url: string): Promise<T> {
 }
 
 // handle login request
-export const login =  async ({usernameOrEmail, password}): Promise<User> => {
-  const res = await fetch("http://localhost:1323/login", {
+export const login =  async ({email, password}): Promise<User> => {
+  const res = await fetch(`${url}/login`, {
     method: "post",
     body: JSON.stringify({
-      usernameOrEmail: usernameOrEmail,
+      email: email,
       password: password,
     }),
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
+    headers: headers,
     credentials: "include",
   });
-
+  
   if (!res.ok) {
     const err: CustomError = await res.json();
     throw new CustomError(err.field, err.message);
@@ -37,18 +54,21 @@ export const login =  async ({usernameOrEmail, password}): Promise<User> => {
 }
 
 // send register request to server
-export const register = async ({username, email, password}): Promise<User> => {
-  const res = await fetch("http://localhost:1323/signup", {
+export const register = async (
+  email: string, 
+  phoneNumber: number, 
+  password: string,
+  passwordConfirmation: string
+): Promise<User> => {
+  const res = await fetch(`${url}/signup`, {
     method: "POST",
     body: JSON.stringify({
-      username: username,
       email: email,
+      phoneNumber: phoneNumber,
       password: password,
+      passwordConfirmation: passwordConfirmation
     }),
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
+    headers: headers,
     credentials: "include",
   });
  
@@ -62,15 +82,12 @@ export const register = async ({username, email, password}): Promise<User> => {
 
 // handle users forgot password request
 export const forgotPassword = async (email: string) => {
-  const res = await fetch("http://localhost:1323/forgot-password", {
+  const res = await fetch(`${url}/forgot-password`, {
     method: "post",
     body: JSON.stringify({
       email: email
     }),
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-      },
+    headers: headers,
     credentials: "include",
   });
 
@@ -87,16 +104,13 @@ export const changePassword = async (
   token: string, 
   newPassword: string
   ): Promise<User> => {
-  const res = await fetch("http://localhost:1323/change-password", {
+  const res = await fetch(`${url}/change-password`, {
     method: "POST",
     body: JSON.stringify({
       token: token,
       newPassword: newPassword
     }),
-    headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        },
+    headers: headers,
     credentials: "include",
   });
 
@@ -108,22 +122,21 @@ export const changePassword = async (
   return await res.json();
 }
 
-export const emailRegex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+export const verify = async (token: string) => {
+  const res = await fetch(`${url}/verify`, {
+    method: "POST",
+    body: JSON.stringify({
+      token: token
+    }),
+    headers: headers,
+  });
 
-// custom error class for users signup and register requests
-export class CustomError extends Error {
-  constructor(public field: string, public message: string) {
-    super(message);
-    this.field = field;
-
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err)
   }
+
+  return await res.json();
 }
 
-// user data that is retrieved from the server.
-export interface User {
-  id: number;
-  createdAt: string;
-  updatedAt: string;
-  username: string;
-  email: string;
-}
+export const emailRegex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
