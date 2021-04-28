@@ -52,3 +52,49 @@ func (p *PostsViews) DeletePostView(c echo.Context) error {
 
 	return c.JSON(200, "successfully deleted")
 }
+
+func (p *PostsViews) GetPostsView(c echo.Context) error {
+	limit, err := strconv.Atoi(c.QueryParam("limit"))
+	if err != nil {
+		return echo.NewHTTPError(400, "invalid limit")
+	}
+
+	cursor := c.QueryParam("cursor")
+	userId, _ := strconv.Atoi(utils.UserIDFromToken(c))
+	posts, hasMore := postsController.GetPosts(limit, &cursor, userId, p.DB)
+
+	return c.JSON(200, models.PaginatedPosts{Posts: posts, HasMore: hasMore})
+}
+
+func (p *PostsViews) ToggleLikeView(c echo.Context) error {
+	var body map[string]int
+	err := (&echo.DefaultBinder{}).BindBody(c, &body)
+	if err != nil {
+		return c.JSON(423, "unable to parse request body")
+	}
+
+	postId, _ := strconv.Atoi(c.Param("id"))
+	userId, _ := strconv.Atoi(utils.UserIDFromToken(c))
+	likedOrDisliked := postsController.SetLike(postId, userId, body["value"], p.DB)
+
+	if !likedOrDisliked {
+		return echo.NewHTTPError(500, "unable to set like")
+	}
+
+	return c.JSON(201, "liked successfully")
+}
+
+func (p *PostsViews) GetUserPostsView(c echo.Context) error {
+	limit, err := strconv.Atoi(c.QueryParam("limit"))
+	if err != nil {
+		return echo.NewHTTPError(400, "invalid limit")
+	}
+
+	userId, _ := strconv.Atoi(utils.UserIDFromToken(c))
+	profileId, _ := strconv.Atoi(c.Param("id"))
+	cursor := c.QueryParam("cursor")
+
+	posts, hasMore := postsController.GetUserPosts(limit, userId, profileId, &cursor, p.DB)
+
+	return c.JSON(200, models.PaginatedPosts{Posts: posts, HasMore: hasMore})
+}
