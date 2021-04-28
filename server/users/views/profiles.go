@@ -59,3 +59,33 @@ func (p *ProfileViews) GetProfileView(c echo.Context) error {
 
 	return c.JSON(200, profile)
 }
+
+func (p *ProfileViews) FollowView(c echo.Context) error {
+	userToId, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return echo.NewHTTPError(400, "invalid id")
+	}
+
+	userFromId, _ := strconv.Atoi(utils.UserIDFromToken(c))
+	followed := profileController.Follow(userFromId, userToId, p.DB)
+	if !followed {
+		return echo.NewHTTPError(500, "unable to follow")
+	}
+
+	return c.JSON(200, "succesfully followed")
+}
+
+func (p *ProfileViews) UnFollowView(c echo.Context) error {
+	userToId, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return echo.NewHTTPError(400, "invalid id")
+	}
+
+	userFromId, _ := strconv.Atoi(utils.UserIDFromToken(c))
+	followed := profileController.UnFollow(userFromId, userToId, p.DB)
+	if !followed {
+		return echo.NewHTTPError(500, "unable to follow")
+	}
+
+	return c.JSON(200, "succesfully unfollowed")
+}
