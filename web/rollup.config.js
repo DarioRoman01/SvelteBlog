@@ -11,6 +11,8 @@ import getConfig from '@roxi/routify/lib/utils/config'
 import autoPreprocess from 'svelte-preprocess'
 import postcssImport from 'postcss-import'
 import { injectManifest } from 'rollup-plugin-workbox'
+import { config } from 'dotenv';
+import replace from '@rollup/plugin-replace';
 
 
 const { distDir } = getConfig() // use Routify's distDir for SSOT
@@ -60,6 +62,15 @@ export default {
                     defaults: { style: 'postcss' }
                 })
             ]
+        }),
+
+        replace({   FOO: 'bar',      
+            process: JSON.stringify({
+                env: {
+                    isProd: production,
+                    ...config().parsed
+                } 
+            }),
         }),
 
         // resolve matching modules from current working directory

@@ -911,7 +911,7 @@
     is-module "^1.0.0"
     resolve "^1.17.0"
 
-"@rollup/plugin-replace@^2.3.1", "@rollup/plugin-replace@^2.3.3":
+"@rollup/plugin-replace@^2.3.1", "@rollup/plugin-replace@^2.3.3", "@rollup/plugin-replace@^2.4.2":
   version "2.4.2"
   resolved "https://registry.yarnpkg.com/@rollup/plugin-replace/-/plugin-replace-2.4.2.tgz#a2d539314fbc77c244858faa523012825068510a"
   integrity sha512-IGcu+cydlUMZ5En85jxHH4qj2hta/11BHq95iHEyb2sbgiN0eCdzvUcHw5gt9pBL5lTi4JDYJ1acCoMGpTvEZg==
@@ -986,7 +986,7 @@
   resolved "https://registry.yarnpkg.com/@types/estree/-/estree-0.0.39.tgz#e177e699ee1b8c22d23174caaa7422644389509f"
   integrity sha512-EYNwp3bU+98cpU4lAWYYL7Zz+2gryWH1qbdDTidVd6hkiR6weksdbMadyXKXNPEkQFhXM+hVO9ZygomHXp+AIw==
 
-"@types/node@*":
+"@types/node@*", "@types/node@^15.0.1":
   version "15.0.1"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-15.0.1.tgz#ef34dea0881028d11398be5bf4e856743e3dc35a"
   integrity sha512-TMkXt0Ck1y0KKsGr9gJtWGjttxlZnnvDtphxUOSd0bfaR6Q1jle+sPvrzNR1urqYTWMinoKvjKfXUGsumaO1PA==
@@ -4291,6 +4291,11 @@ svelte-hmr@^0.11.3:
   version "0.11.6"
   resolved "https://registry.yarnpkg.com/svelte-hmr/-/svelte-hmr-0.11.6.tgz#67f0498e2cdce9e1039631d820c1951bd01caa3f"
   integrity sha512-XUYcp7W26q/fF8tABZfCYGklwL4TDH48gc1KOjuBQNlTiMW63l/+rRqmfVOE/qKG5vns0J2NPo3zFjdahkwoHA==
+
+svelte-materialify@^0.3.10:
+  version "0.3.10"
+  resolved "https://registry.yarnpkg.com/svelte-materialify/-/svelte-materialify-0.3.10.tgz#c50bbb51008925982bd43e38114e6ac6f213cf9c"
+  integrity sha512-liiZuCwxgnOh0IIPugdzZtyPgxqQmCwvU/RDcNeHd/Vw8JHHYTCFRyPRM6hyvd+htEVgHWV11bGcRUNZwnzCAg==
 
 svelte-preprocess@^4.0.0, svelte-preprocess@^4.5.2:
   version "4.7.2"

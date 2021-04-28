@@ -12,3 +12,4 @@ assets/build
 api
 netlify.toml
 vercel.json
+.env

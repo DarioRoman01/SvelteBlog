@@ -68,6 +68,14 @@ func (u *UsersViews) LoginView(c echo.Context) error {
 		return c.JSON(err.Code, err.Message)
 	}
 
+	token, httpErr := utils.GenerateToken(user.ID, "session")
+	if httpErr != nil {
+		return c.JSON(httpErr.Code, httpErr.Message)
+	}
+
+	session, _ := utils.Store.Get(c.Request(), "jwt")
+	session.Values["token"] = token
+	session.Save(c.Request(), c.Response().Writer)
 	return c.JSON(200, user)
 }
 

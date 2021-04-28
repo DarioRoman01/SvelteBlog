@@ -3,7 +3,6 @@ package views
 import (
 	"blogv2/users/controllers"
 	"blogv2/users/models"
-	"blogv2/utils"
 	"strconv"
 
 	"github.com/labstack/echo/v4"
@@ -23,9 +22,8 @@ func (p *ProfileViews) CreateProfileView(c echo.Context) error {
 		return echo.NewHTTPError(423, "unable to parse request body")
 	}
 
-	userId, _ := strconv.Atoi(utils.UserIDFromToken(c))
-	profile.UserID = uint(userId)
-
+	userId := c.Request().Context().Value("user").(uint)
+	profile.UserID = userId
 	httpErr := profileController.CreateProfile(&profile, p.DB)
 	if httpErr != nil {
 		return c.JSON(httpErr.Code, httpErr.Message)
@@ -41,8 +39,8 @@ func (p *ProfileViews) UpdateProfileView(c echo.Context) error {
 		return echo.NewHTTPError(423, "unable to parse request body")
 	}
 
-	userId, _ := strconv.Atoi(utils.UserIDFromToken(c))
-	newProfile, httpErr := profileController.UpdateProfile(uint(userId), uint(id), &profile, p.DB)
+	userId := c.Request().Context().Value("user").(uint)
+	newProfile, httpErr := profileController.UpdateProfile(userId, uint(id), &profile, p.DB)
 	if httpErr != nil {
 		return c.JSON(httpErr.Code, httpErr.Message)
 	}
@@ -66,26 +64,11 @@ func (p *ProfileViews) FollowView(c echo.Context) error {
 		return echo.NewHTTPError(400, "invalid id")
 	}
 
-	userFromId, _ := strconv.Atoi(utils.UserIDFromToken(c))
+	userFromId := c.Request().Context().Value("user").(int)
 	followed := profileController.Follow(userFromId, userToId, p.DB)
 	if !followed {
 		return echo.NewHTTPError(500, "unable to follow")
 	}
 
 	return c.JSON(200, "succesfully followed")
-}
-
-func (p *ProfileViews) UnFollowView(c echo.Context) error {
-	userToId, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		return echo.NewHTTPError(400, "invalid id")
-	}
-
-	userFromId, _ := strconv.Atoi(utils.UserIDFromToken(c))
-	followed := profileController.UnFollow(userFromId, userToId, p.DB)
-	if !followed {
-		return echo.NewHTTPError(500, "unable to follow")
-	}
-
-	return c.JSON(200, "succesfully unfollowed")
 }
