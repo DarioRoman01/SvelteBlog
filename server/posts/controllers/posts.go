@@ -132,8 +132,8 @@ func (p *PostsController) SetLike(postId, userId, value int, db *gorm.DB) bool {
 	return true
 }
 
-func (p *PostsController) GetUserPosts(limit, userId, profileId int, cursor *string, db *gorm.DB) ([]*models.Post, bool) {
-	var posts []*models.Post
+func (p *PostsController) GetUserPosts(limit, userId, profileId int, cursor *string, db *gorm.DB) ([]models.Post, bool) {
+	var posts []models.Post
 
 	if limit > 50 {
 		limit = 50
@@ -154,7 +154,7 @@ func (p *PostsController) GetUserPosts(limit, userId, profileId int, cursor *str
 	} else {
 		db.Raw(`
 			SELECT p.*,
-			( SELECT "value" from "updoots" 
+			( SELECT "value" from "likes" 
 			WHERE "user_id" = ? and "post_id" = p.id) as "StateValue"
 			FROM posts p
 			WHERE user_id = ?
