@@ -1,0 +1,14 @@
+**/node_modules/
+/dist/
+.DS_Store
+**/.history
+src/tmp/
+.routify
+.netlify
+assets/build
+.vercel
+.vscode
+.nolluprc.js
+api
+netlify.toml
+vercel.json
