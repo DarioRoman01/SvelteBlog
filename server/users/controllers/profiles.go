@@ -70,26 +70,16 @@ func (p *ProfileController) Follow(userFromID, userToID int, db *gorm.DB) bool {
 		return false
 	}
 
-	err := db.Model(&userFrom).Association("Follow").Append(&userTo)
-	if err != nil {
-		return false
-	}
+	following := p.GetFollowState(userFromID, userToID, db)
 
-	db.Model(&userTo.Profile).Update("followers = followers + ?", 1)
-	return true
-}
+	if !following {
+		err := db.Model(&userFrom).Association("Follow").Append(&userTo)
+		if err != nil {
+			return false
+		}
 
-func (p *ProfileController) UnFollow(userFromID, userToID int, db *gorm.DB) bool {
-	var userFrom models.User
-	db.Table("users").Where("id = ?", userFromID).Find(&userFrom)
-	if userFrom.ID == 0 {
-		return false
-	}
-
-	var userTo models.User
-	db.Table("users").Where("id = ?", userFromID).Find(&userTo)
-	if userTo.ID == 0 {
-		return false
+		db.Model(&userTo.Profile).Update("followers = followers + ?", 1)
+		return true
 	}
 
 	err := db.Model(&userFrom).Association("Follow").Delete(&userFrom)
@@ -99,4 +89,16 @@ func (p *ProfileController) UnFollow(userFromID, userToID int, db *gorm.DB) bool
 
 	db.Model(&userTo.Profile).Update("followers = followers - ?", 1)
 	return true
+}
+
+func (p *ProfileController) GetFollowState(userFromID, userToID int, db *gorm.DB) bool {
+	var followId int
+	db.Raw(`
+		SELECT follow_id,
+		FROM "user_follow",
+		WHERE user_id = ?
+		AND follow_id =?
+	`, userFromID, userToID).Find(&followId)
+
+	return followId != 0
 }
