@@ -1,9 +1,12 @@
 package routes
 
 import (
+	"blogv2/utils"
+	"context"
 	"log"
 	"os"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -15,13 +18,36 @@ func init() {
 	}
 }
 
-func JwtMiddleware() echo.MiddlewareFunc {
-	jwtMiddleware := middleware.JWTWithConfig(middleware.JWTConfig{
-		SigningKey:  []byte(os.Getenv("JWT-SECRET")),
-		TokenLookup: "header:x-auth-token",
-	})
+var SkipperRoutes = [4]string{"/login", "/signup", "/forgot-password", "/change-password"}
 
-	return jwtMiddleware
+func IsAuth(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		if contains(SkipperRoutes, c.Path()) {
+			return next(c)
+		}
+
+		session, _ := utils.Store.Get(c.Request(), "jwt")
+		strToken, exists := session.Values["token"]
+		if !exists {
+			return echo.NewHTTPError(401, "not authenticated")
+		}
+
+		claims := jwt.MapClaims{}
+		token, err := jwt.ParseWithClaims(strToken.(string), claims, func(t *jwt.Token) (interface{}, error) {
+			return []byte(os.Getenv("JWT-SECRET")), nil
+		})
+		if err != nil {
+			return echo.NewHTTPError(423, "invalid token")
+		}
+
+		if claims["type"] != "session" || !token.Valid {
+			return echo.NewHTTPError(400, "invalid token")
+		}
+
+		ctx := context.WithValue(c.Request().Context(), "user", claims["user_id"])
+		c.SetRequest(c.Request().WithContext(ctx))
+		return next(c)
+	}
 }
 
 func CORSconfig() echo.MiddlewareFunc {
@@ -31,4 +57,13 @@ func CORSconfig() echo.MiddlewareFunc {
 	})
 
 	return cors
+}
+
+func contains(arr [4]string, str string) bool {
+	for _, a := range arr {
+		if a == str {
+			return true
+		}
+	}
+	return false
 }

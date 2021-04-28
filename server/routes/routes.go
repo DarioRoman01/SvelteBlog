@@ -32,7 +32,7 @@ func SetRoutes(e *echo.Echo) {
 	commentViews := &pViews.CommentsViews{DB: psql}
 
 	e.Use(CORSconfig())
-	e.Use(JwtMiddleware())
+	e.Use(IsAuth)
 	e.Use(middleware.RemoveTrailingSlash())
 
 	e.POST("/register", usersViews.SignupView)
@@ -46,7 +46,6 @@ func SetRoutes(e *echo.Echo) {
 	e.GET("/profile/:username", profileViews.GetProfileView)
 	e.GET("/profile/:id/posts", postsViews.GetUserPostsView)
 	e.POST("/profile/:id/follow", profileViews.FollowView)
-	e.POST("/profile/:id/unfollow", profileViews.UnFollowView)
 
 	e.GET("/posts", postsViews.GetPostsView)
 	e.POST("/posts", postsViews.CreatePostView)
