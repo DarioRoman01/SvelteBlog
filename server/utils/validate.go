@@ -37,6 +37,38 @@ func ValidateCursor(cursor string) *echo.HTTPError {
 	return nil
 }
 
+func CheckIDParamError(err error) *echo.HTTPError {
+	if err != nil {
+		return echo.NewHTTPError(400, "invalid id")
+	}
+
+	return nil
+}
+
+func CheckLimitParamError(err error) *echo.HTTPError {
+	if err != nil {
+		return echo.NewHTTPError(400, "invalid limit")
+	}
+
+	return nil
+}
+
+func CheckRequestBodyError(err error) *echo.HTTPError {
+	if err != nil {
+		return echo.NewHTTPError(423, "unable to parse request body")
+	}
+
+	return nil
+}
+
+func CheckHttpError(err *echo.HTTPError) *echo.HTTPError {
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // return a bad request error with a field and
 // message for the error.
 func InvalidInput(field, message string) *echo.HTTPError {
