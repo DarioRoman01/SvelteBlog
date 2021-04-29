@@ -17,6 +17,7 @@ type PostsViews struct {
 
 var postsController *controllers.PostsController
 
+// handle create post request
 func (p *PostsViews) CreatePostView(c echo.Context) error {
 	var post models.Post
 	err := c.Bind(&post)
@@ -30,6 +31,7 @@ func (p *PostsViews) CreatePostView(c echo.Context) error {
 	return c.JSON(201, post)
 }
 
+// retrieve post by id and validate id in url params
 func (p *PostsViews) GetPostView(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))
 	utils.CheckIDParamError(err)
@@ -40,6 +42,7 @@ func (p *PostsViews) GetPostView(c echo.Context) error {
 	return c.JSON(200, post)
 }
 
+// handle delete post request and validate url params
 func (p *PostsViews) DeletePostView(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))
 	utils.CheckIDParamError(err)
@@ -50,6 +53,7 @@ func (p *PostsViews) DeletePostView(c echo.Context) error {
 	return c.JSON(200, "successfully deleted")
 }
 
+// handle list posts validating url query params for pagination
 func (p *PostsViews) GetPostsView(c echo.Context) error {
 	limit, err := strconv.Atoi(c.QueryParam("limit"))
 	utils.CheckLimitParamError(err)
@@ -63,6 +67,7 @@ func (p *PostsViews) GetPostsView(c echo.Context) error {
 	return c.JSON(200, models.PaginatedPosts{Posts: posts, HasMore: hasMore})
 }
 
+// handle like request and validta url params
 func (p *PostsViews) ToggleLikeView(c echo.Context) error {
 	var body map[string]int
 	err := (&echo.DefaultBinder{}).BindBody(c, &body)
@@ -80,6 +85,7 @@ func (p *PostsViews) ToggleLikeView(c echo.Context) error {
 	return c.JSON(201, "liked successfully")
 }
 
+// retrieve all users posts with pagination
 func (p *PostsViews) GetUserPostsView(c echo.Context) error {
 	limit, err := strconv.Atoi(c.QueryParam("limit"))
 	if err != nil {

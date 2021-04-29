@@ -55,6 +55,8 @@ func (p *PostsController) GetPosts(limit int, cursor *string, userId int, db *go
 			SELECT p.*,
 			( SELECT "value" from "likes" 
 			WHERE "user_id" = ? and "post_id" = p.id) as "StateValue"
+			(SELECT * FROM "profiles"
+			WHERE user_id = p.user_id) as "Creator"
 			FROM posts p
 			WHERE p.created_at < ?
 			ORDER BY p.created_at DESC
@@ -65,6 +67,8 @@ func (p *PostsController) GetPosts(limit int, cursor *string, userId int, db *go
 			SELECT p.*,
 			( SELECT "value" from "updoots" 
 			WHERE "user_id" = ? and "post_id" = p.id) as "StateValue"
+			(SELECT * FROM "profiles"
+			WHERE user_id = p.user_id) as "Creator"
 			FROM posts p
 			ORDER BY p.created_at DESC
 			LIMIT ?
