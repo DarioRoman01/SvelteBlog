@@ -6,7 +6,7 @@ export interface Comment {
   body: string;
 }
 
-export interface PaginatedPosts {
+export interface PaginatedComments {
   comments: Comment[];
   hasMore: boolean;
 }

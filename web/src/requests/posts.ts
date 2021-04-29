@@ -1,3 +1,5 @@
+import type { Profile } from "./profile";
+
 export interface Post {
   id: number;
   createdAt: string;
@@ -7,6 +9,7 @@ export interface Post {
   title: string;
   body: string;
   likes: string;
+  creator: Profile;
 }
 
 export interface PaginatedPosts {

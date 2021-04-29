@@ -22,8 +22,8 @@ export interface User {
 }
 
 // api call with generics for GET request
-export async function api<T>(url: string): Promise<T> {
-  const response = await fetch(url, {
+export async function api<T>(endpoint: string): Promise<T> {
+  const response = await fetch(url+endpoint, {
     credentials: 'include',
     headers: headers,
   })
