@@ -26,27 +26,32 @@ func SetRoutes(e *echo.Echo) {
 		&pModels.Like{},
 	)
 
+	// handlers
 	usersViews := &views.UsersViews{DB: psql}
 	profileViews := &views.ProfileViews{DB: psql}
 	postsViews := &pViews.PostsViews{DB: psql}
 	commentViews := &pViews.CommentsViews{DB: psql}
 
+	// middlewares
 	e.Use(CORSconfig())
 	e.Use(IsAuth)
 	e.Use(middleware.RemoveTrailingSlash())
 
+	// user views
 	e.POST("/register", usersViews.SignupView)
 	e.POST("/login", usersViews.LoginView)
 	e.POST("/change-password", usersViews.ChangePasswordView)
 	e.POST("/forgot-password", usersViews.ForgotPasswordView)
 	e.POST("/verify", usersViews.VerifyAccountView)
 
+	// profile views
 	e.PATCH("/profile/:id", profileViews.UpdateProfileView)
 	e.POST("/profile", profileViews.CreateProfileView)
 	e.GET("/profile/:username", profileViews.GetProfileView)
 	e.GET("/profile/:id/posts", postsViews.GetUserPostsView)
 	e.POST("/profile/:id/follow", profileViews.FollowView)
 
+	// posts views
 	e.GET("/posts", postsViews.GetPostsView)
 	e.POST("/posts", postsViews.CreatePostView)
 	e.GET("/posts/:id", postsViews.GetPostView)

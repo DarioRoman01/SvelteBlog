@@ -45,6 +45,7 @@ func (p *ProfileController) UpdateProfile(userID uint, id uint, data *models.Pro
 	return &storeProfile, nil
 }
 
+// retrieve profile by given username
 func (p *ProfileController) GetProfileByUsername(username string, db *gorm.DB) *models.Profile {
 	var profile models.Profile
 
@@ -57,6 +58,8 @@ func (p *ProfileController) GetProfileByUsername(username string, db *gorm.DB) *
 	return &profile
 }
 
+// handle users folow and unfollow checking if the requesting user
+// is already following the given user
 func (p *ProfileController) Follow(userFromID, userToID int, db *gorm.DB) bool {
 	var userFrom models.User
 	db.Table("users").Where("id = ?", userFromID).Find(&userFrom)
@@ -91,6 +94,7 @@ func (p *ProfileController) Follow(userFromID, userToID int, db *gorm.DB) bool {
 	return true
 }
 
+// get follow state of the requesting user
 func (p *ProfileController) GetFollowState(userFromID, userToID int, db *gorm.DB) bool {
 	var followId int
 	db.Raw(`

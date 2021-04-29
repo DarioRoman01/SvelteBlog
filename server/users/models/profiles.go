@@ -6,6 +6,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// profile model holds all user public info
 type Profile struct {
 	UserID    uint           `json:"userID" gorm:"primaryKey"`
 	CreatedAt time.Time      `json:"createdAt"`

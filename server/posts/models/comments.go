@@ -2,6 +2,7 @@ package models
 
 import "time"
 
+// Comment model
 type Comment struct {
 	UserID    uint      `json:"creatorId" gorm:"primaryKey"`
 	PostID    uint      `json:"postId" gorm:"primaryKey"`
@@ -10,6 +11,7 @@ type Comment struct {
 	Body      string    `json:"body"`
 }
 
+// model for comments pagination
 type PaginatedComments struct {
 	Comments []Comment `json:"comments"`
 	HasMore  bool      `json:"hasMore"`

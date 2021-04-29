@@ -9,12 +9,15 @@ import (
 	"gorm.io/gorm"
 )
 
+// group all views related with users profiles
 type ProfileViews struct {
 	DB *gorm.DB
 }
 
+// shortcut for not writing controllers.ProfileController
 var profileController *controllers.ProfileController
 
+// handle profile creation and validate all required fields
 func (p *ProfileViews) CreateProfileView(c echo.Context) error {
 	var profile models.Profile
 
@@ -32,6 +35,7 @@ func (p *ProfileViews) CreateProfileView(c echo.Context) error {
 	return c.JSON(201, profile)
 }
 
+// handle profile updates
 func (p *ProfileViews) UpdateProfileView(c echo.Context) error {
 	var profile models.Profile
 	id, _ := strconv.Atoi(c.Param("id"))
@@ -48,6 +52,7 @@ func (p *ProfileViews) UpdateProfileView(c echo.Context) error {
 	return c.JSON(200, newProfile)
 }
 
+// retrieve profile with given username
 func (p *ProfileViews) GetProfileView(c echo.Context) error {
 	username := c.Param("username")
 	profile := profileController.GetProfileByUsername(username, p.DB)
@@ -58,6 +63,7 @@ func (p *ProfileViews) GetProfileView(c echo.Context) error {
 	return c.JSON(200, profile)
 }
 
+// handle users follow and unfollow action
 func (p *ProfileViews) FollowView(c echo.Context) error {
 	userToId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {

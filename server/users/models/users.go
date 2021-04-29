@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// user model
 type User struct {
 	ID          uint           `json:"id" gorm:"primaryKey;foreignkey:UserID;references:ID"`
 	CreatedAt   time.Time      `json:"createdAt"`
@@ -32,4 +33,9 @@ type UserRegisterInput struct {
 	PhoneNumber          string `json:"phoneNumber"`
 	Password             string `json:"password"`
 	PasswordConfirmation string `json:"passwordConfirmation"`
+}
+
+type PaginatedUsers struct {
+	Users   []User `json:"users"`
+	HasMore bool   `json:"hasMore"`
 }

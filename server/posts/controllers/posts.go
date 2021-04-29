@@ -8,8 +8,10 @@ import (
 	"gorm.io/gorm"
 )
 
+// group all posts related functions in the db
 type PostsController struct{}
 
+// store the post in the db
 func (p *PostsController) CreatePost(post *models.Post, db *gorm.DB) *echo.HTTPError {
 	if err := db.Create(&post).Error; err != nil {
 		return echo.NewHTTPError(500, "unable to create post.")
@@ -18,6 +20,7 @@ func (p *PostsController) CreatePost(post *models.Post, db *gorm.DB) *echo.HTTPE
 	return nil
 }
 
+// retrieve post by id
 func (p *PostsController) GetPost(id int, db *gorm.DB) (*models.Post, *echo.HTTPError) {
 	var post models.Post
 	db.Model(&models.Post{}).Where("id = ?", id).Find(&post)
@@ -29,6 +32,7 @@ func (p *PostsController) GetPost(id int, db *gorm.DB) (*models.Post, *echo.HTTP
 	return &post, nil
 }
 
+// delete post from the db
 func (p *PostsController) DeletePost(id int, userID int, db *gorm.DB) *echo.HTTPError {
 	tx := db.Where("id = ? AND user_id = ?", id, userID).Delete(&models.Post{})
 	if tx.RowsAffected == 0 || tx.Error != nil {
@@ -38,6 +42,7 @@ func (p *PostsController) DeletePost(id int, userID int, db *gorm.DB) *echo.HTTP
 	return nil
 }
 
+// retrieve all post and paginate them
 func (p *PostsController) GetPosts(limit int, cursor *string, userId int, db *gorm.DB) ([]models.Post, bool) {
 	var posts []models.Post
 	if limit > 50 {
@@ -75,6 +80,7 @@ func (p *PostsController) GetPosts(limit int, cursor *string, userId int, db *go
 	return posts[0 : len(posts)-1], false
 }
 
+// set user like or quit their like depending if he liked the post before
 func (p *PostsController) SetLike(postId, userId, value int, db *gorm.DB) bool {
 	var like models.Like
 	isLike := value != -1
@@ -88,8 +94,8 @@ func (p *PostsController) SetLike(postId, userId, value int, db *gorm.DB) bool {
 
 	db.Table("likes").Where("user_id = ? and post_id = ?", userId, postId).Find(&like)
 
-	// user is vote the post before and
-	// they are changing their vote
+	// user is liked the post before and
+	// they are changing their like
 	if like.PostID != 0 && like.Value != realValue {
 		query := fmt.Sprintf(`
 			START TRANSACTION;
@@ -109,7 +115,7 @@ func (p *PostsController) SetLike(postId, userId, value int, db *gorm.DB) bool {
 			return false
 		}
 
-		// user has never voted before
+		// user has never voted like
 	} else if like.PostID == 0 {
 		query := fmt.Sprintf(`
 			START TRANSACTION;
@@ -132,6 +138,7 @@ func (p *PostsController) SetLike(postId, userId, value int, db *gorm.DB) bool {
 	return true
 }
 
+// retrieve the posts of the given user paginated
 func (p *PostsController) GetUserPosts(limit, userId, profileId int, cursor *string, db *gorm.DB) ([]models.Post, bool) {
 	var posts []models.Post
 

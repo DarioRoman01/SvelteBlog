@@ -18,8 +18,15 @@ func init() {
 	}
 }
 
+// routes to be skipped
 var SkipperRoutes = [4]string{"/login", "/signup", "/forgot-password", "/change-password"}
 
+/*
+IsAuth middleware check if the path has to be skipped,
+validate cookie and jwt token sended by the client
+and set the user id in the context to get the id
+of the requesting user more easyli.
+*/
 func IsAuth(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		if contains(SkipperRoutes, c.Path()) {
@@ -50,6 +57,7 @@ func IsAuth(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
+// cors config middleware
 func CORSconfig() echo.MiddlewareFunc {
 	cors := middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins:     []string{os.Getenv("CORS_ORIGIN")},

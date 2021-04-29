@@ -7,8 +7,10 @@ import (
 	"gorm.io/gorm"
 )
 
+// group all functions related on comments on the db
 type CommentsController struct{}
 
+// create comment in the db
 func (c *CommentsController) AddComment(comment *models.Comment, db *gorm.DB) *echo.HTTPError {
 	if err := db.Create(&comment).Error; err != nil {
 		return echo.NewHTTPError(500, "unable to create post")
@@ -17,6 +19,7 @@ func (c *CommentsController) AddComment(comment *models.Comment, db *gorm.DB) *e
 	return nil
 }
 
+// retrieve all posts comments and paginate them
 func (c *CommentsController) GetPostComments(postId, limit int, cursor *string, db *gorm.DB) ([]models.Comment, bool) {
 	var comments []models.Comment
 	if limit > 50 {
@@ -53,6 +56,7 @@ func (c *CommentsController) GetPostComments(postId, limit int, cursor *string, 
 	return comments[0 : len(comments)-1], false
 }
 
+// delete comment from the db
 func (c *CommentsController) DeleteComment(id, userId int, db *gorm.DB) *echo.HTTPError {
 	tx := db.Where("id = ? AND user_id = ?", id, userId).Delete(&models.Comment{})
 	if tx.RowsAffected == 0 || tx.Error != nil {

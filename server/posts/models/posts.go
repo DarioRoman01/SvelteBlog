@@ -6,6 +6,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// post model
 type Post struct {
 	ID         uint           `json:"id" gorm:"primaryKey"`
 	CreatedAt  time.Time      `json:"createdAt"`
@@ -20,6 +21,7 @@ type Post struct {
 	Liked      []Like
 }
 
+// model for posts pagination
 type PaginatedPosts struct {
 	Posts   []Post `json:"posts"`
 	HasMore bool   `json:"hasMore"`

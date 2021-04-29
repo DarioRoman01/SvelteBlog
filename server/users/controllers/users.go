@@ -8,6 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// group all the functions related with the db and users
 type UsersController struct{}
 
 var passwordCfg *utils.PasswordConfig
@@ -56,8 +57,9 @@ func (u *UsersController) LoginByEmail(input *models.UserLoginInput, db *gorm.DB
 	return user, nil
 }
 
-func (u *UsersController) GetUserFollowers(userId, limit int, cursor *string, db *gorm.DB) ([]*models.User, bool) {
-	var users []*models.User
+// retrieve all users followers and paginate them
+func (u *UsersController) GetUserFollowers(userId, limit int, cursor *string, db *gorm.DB) ([]models.User, bool) {
+	var users []models.User
 
 	if cursor != nil {
 		db.Raw(`
