@@ -22,7 +22,7 @@ export interface User {
 }
 
 // api call with generics for GET request
-export default async function api<T>(url: string): Promise<T> {
+export async function api<T>(url: string): Promise<T> {
   const response = await fetch(url, {
     credentials: 'include',
     headers: headers,
@@ -129,6 +129,20 @@ export const verify = async (token: string) => {
       token: token
     }),
     headers: headers,
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err)
+  }
+
+  return await res.json();
+}
+
+export const logout = async () => {
+  const res = await fetch(`${url}/logout`, {
+    method: "post",
+    credentials: "include"
   });
 
   if (!res.ok) {
