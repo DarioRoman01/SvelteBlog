@@ -115,7 +115,7 @@ func (p *PostsController) SetLike(postId, userId, value int, db *gorm.DB) bool {
 			return false
 		}
 
-		// user has never voted like
+		// user has never liked before
 	} else if like.PostID == 0 {
 		query := fmt.Sprintf(`
 			START TRANSACTION;

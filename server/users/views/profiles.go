@@ -3,6 +3,7 @@ package views
 import (
 	"blogv2/users/controllers"
 	"blogv2/users/models"
+	"blogv2/utils"
 	"strconv"
 
 	"github.com/labstack/echo/v4"
@@ -20,7 +21,6 @@ var profileController *controllers.ProfileController
 // handle profile creation and validate all required fields
 func (p *ProfileViews) CreateProfileView(c echo.Context) error {
 	var profile models.Profile
-
 	if err := c.Bind(&profile); err != nil {
 		return echo.NewHTTPError(423, "unable to parse request body")
 	}
@@ -28,26 +28,22 @@ func (p *ProfileViews) CreateProfileView(c echo.Context) error {
 	userId := c.Request().Context().Value("user").(uint)
 	profile.UserID = userId
 	httpErr := profileController.CreateProfile(&profile, p.DB)
-	if httpErr != nil {
-		return c.JSON(httpErr.Code, httpErr.Message)
-	}
-
+	utils.CheckHttpError(httpErr)
 	return c.JSON(201, profile)
 }
 
 // handle profile updates
 func (p *ProfileViews) UpdateProfileView(c echo.Context) error {
 	var profile models.Profile
-	id, _ := strconv.Atoi(c.Param("id"))
-	if err := c.Bind(&profile); err != nil {
-		return echo.NewHTTPError(423, "unable to parse request body")
-	}
+	id, err := strconv.Atoi(c.Param("id"))
+	utils.CheckIDParamError(err)
+
+	err = c.Bind(&profile)
+	utils.CheckRequestBodyError(err)
 
 	userId := c.Request().Context().Value("user").(uint)
 	newProfile, httpErr := profileController.UpdateProfile(userId, uint(id), &profile, p.DB)
-	if httpErr != nil {
-		return c.JSON(httpErr.Code, httpErr.Message)
-	}
+	utils.CheckHttpError(httpErr)
 
 	return c.JSON(200, newProfile)
 }
@@ -66,9 +62,7 @@ func (p *ProfileViews) GetProfileView(c echo.Context) error {
 // handle users follow and unfollow action
 func (p *ProfileViews) FollowView(c echo.Context) error {
 	userToId, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		return echo.NewHTTPError(400, "invalid id")
-	}
+	utils.CheckIDParamError(err)
 
 	userFromId := c.Request().Context().Value("user").(int)
 	followed := profileController.Follow(userFromId, userToId, p.DB)

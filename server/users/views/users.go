@@ -33,9 +33,8 @@ func init() {
 func (u *UsersViews) SignupView(c echo.Context) error {
 	var userInput models.UserRegisterInput
 
-	if err := c.Bind(&userInput); err != nil {
-		return echo.NewHTTPError(423, "unable to parse request body")
-	}
+	err := c.Bind(&userInput)
+	utils.CheckRequestBodyError(err)
 
 	isInvalid := utils.ValidateRegister(userInput)
 
@@ -43,16 +42,13 @@ func (u *UsersViews) SignupView(c echo.Context) error {
 		return c.JSON(isInvalid.Code, isInvalid.Message)
 	}
 
-	userCreated, err := usersController.CreateUser(&models.User{
+	userCreated, httpErr := usersController.CreateUser(&models.User{
 		Email:       userInput.Email,
 		PhoneNumber: userInput.PhoneNumber,
 		Password:    userInput.Password,
 	}, u.DB)
 
-	if err != nil {
-		return c.JSON(err.Code, err.Message)
-	}
-
+	utils.CheckHttpError(httpErr)
 	send := utils.SendEmail(userCreated, "verify")
 	if !send {
 		return echo.NewHTTPError(500, "unable to send email")
@@ -65,19 +61,14 @@ func (u *UsersViews) SignupView(c echo.Context) error {
 func (u *UsersViews) LoginView(c echo.Context) error {
 	var userInput models.UserLoginInput
 
-	if err := c.Bind(&userInput); err != nil {
-		return echo.NewHTTPError(423, "unable to parse request body")
-	}
+	err := c.Bind(&userInput)
+	utils.CheckRequestBodyError(err)
 
-	user, err := usersController.LoginByEmail(&userInput, u.DB)
-	if err != nil {
-		return c.JSON(err.Code, err.Message)
-	}
+	user, httpErr := usersController.LoginByEmail(&userInput, u.DB)
+	utils.CheckHttpError(httpErr)
 
 	token, httpErr := utils.GenerateToken(user.ID, "session")
-	if httpErr != nil {
-		return c.JSON(httpErr.Code, httpErr.Message)
-	}
+	utils.CheckHttpError(httpErr)
 
 	session, _ := utils.Store.Get(c.Request(), "jwt")
 	session.Values["token"] = token
@@ -89,9 +80,7 @@ func (u *UsersViews) LoginView(c echo.Context) error {
 func (u *UsersViews) VerifyAccountView(c echo.Context) error {
 	var body map[string]string
 	err := (&echo.DefaultBinder{}).BindBody(c, &body)
-	if err != nil {
-		return c.JSON(400, "unable to parse request body")
-	}
+	utils.CheckRequestBodyError(err)
 
 	claims := jwt.MapClaims{}
 	token, err := jwt.ParseWithClaims(body["token"], claims, func(t *jwt.Token) (interface{}, error) {
@@ -118,9 +107,7 @@ func (u *UsersViews) VerifyAccountView(c echo.Context) error {
 func (u *UsersViews) ChangePasswordView(c echo.Context) error {
 	var body map[string]string
 	err := (&echo.DefaultBinder{}).BindBody(c, &body)
-	if err != nil {
-		return c.JSON(423, "unable to parse request body")
-	}
+	utils.CheckRequestBodyError(err)
 
 	claims := jwt.MapClaims{}
 	token, err := jwt.ParseWithClaims(body["token"], claims, func(t *jwt.Token) (interface{}, error) {
@@ -138,10 +125,7 @@ func (u *UsersViews) ChangePasswordView(c echo.Context) error {
 	}
 
 	user, httpErr := usersController.ChangePassword(claims["user_id"].(string), body["newPassword"], u.DB)
-	if httpErr != nil {
-		return c.JSON(httpErr.Code, httpErr.Message)
-	}
-
+	utils.CheckHttpError(httpErr)
 	return c.JSON(200, user)
 }
 
@@ -150,16 +134,14 @@ func (u *UsersViews) ChangePasswordView(c echo.Context) error {
 func (u *UsersViews) ForgotPasswordView(c echo.Context) error {
 	var email map[string]string
 	err := (&echo.DefaultBinder{}).BindBody(c, &email)
-	if err != nil {
-		return c.JSON(423, "unable to parse request body")
-	}
+	utils.CheckRequestBodyError(err)
+
 	user := usersController.GetUserByEmail(email["email"], u.DB)
 	if user == nil {
 		return utils.InvalidInput("email", "email does not exist")
 	}
 
 	ok := utils.SendEmail(user, "change")
-
 	if !ok {
 		return echo.NewHTTPError(500, "unable to send email")
 	}
@@ -183,16 +165,14 @@ func (u *UsersViews) LogoutView(c echo.Context) error {
 // and validate params and query params
 func (u *UsersViews) UserFollowersViews(c echo.Context) error {
 	limit, err := strconv.Atoi(c.QueryParam("limit"))
-	if err != nil {
-		return echo.NewHTTPError(400, "invalid limit")
-	}
+	utils.CheckLimitParamError(err)
 
 	userId, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		return echo.NewHTTPError(400, "invalid id")
-	}
+	utils.CheckIDParamError(err)
 
 	cursor := c.QueryParam("cursor")
+	utils.ValidateCursor(cursor)
+
 	users, hasMore := usersController.GetUserFollowers(userId, limit, &cursor, u.DB)
 	return c.JSON(200, models.PaginatedUsers{Users: users, HasMore: hasMore})
 }

@@ -20,23 +20,18 @@ var commentsController *controllers.CommentsController
 // handle comments creatoin request and validate param
 func (cv *CommentsViews) AddCommentView(c echo.Context) error {
 	var comment models.Comment
-	if err := c.Bind(&comment); err != nil {
-		return echo.NewHTTPError(423, "unable to parse request bdy")
-	}
+	err := c.Bind(&comment)
+	utils.CheckRequestBodyError(err)
 
 	postId, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		return echo.NewHTTPError(400, "invalid id")
-	}
+	utils.CheckIDParamError(err)
 
 	userId := c.Request().Context().Value("user").(uint)
 	comment.PostID = uint(postId)
 	comment.UserID = userId
 
 	httpErr := commentsController.AddComment(&comment, cv.DB)
-	if httpErr != nil {
-		return c.JSON(httpErr.Code, httpErr.Message)
-	}
+	utils.CheckHttpError(httpErr)
 
 	return c.JSON(201, comment)
 }
@@ -44,23 +39,15 @@ func (cv *CommentsViews) AddCommentView(c echo.Context) error {
 // retrieve comment by id and validate all url params
 func (cv *CommentsViews) GetPostCommentsView(c echo.Context) error {
 	postId, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		return echo.NewHTTPError(400, "invalid id")
-	}
+	utils.CheckIDParamError(err)
 
 	cursor := c.QueryParam("cursor")
 	httpErr := utils.ValidateCursor(cursor)
-	if httpErr != nil {
-		return c.JSON(httpErr.Code, httpErr.Message)
-	}
+	utils.CheckHttpError(httpErr)
 
 	limit, err := strconv.Atoi(c.QueryParam("limit"))
-	if err != nil {
-		return echo.NewHTTPError(400, "invalid limit")
-	}
-
+	utils.CheckLimitParamError(err)
 	comments, hasMore := commentsController.GetPostComments(postId, limit, &cursor, cv.DB)
-
 	return c.JSON(200, models.PaginatedComments{
 		Comments: comments,
 		HasMore:  hasMore,
@@ -70,15 +57,10 @@ func (cv *CommentsViews) GetPostCommentsView(c echo.Context) error {
 // handle delete comment request
 func (cv *CommentsViews) DeleteCommentView(c echo.Context) error {
 	commentId, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		return echo.NewHTTPError(400, "invalid id")
-	}
+	utils.CheckIDParamError(err)
 
 	userId := c.Request().Context().Value("user").(int)
 	httpErr := commentsController.DeleteComment(commentId, userId, cv.DB)
-	if err != nil {
-		return c.JSON(httpErr.Code, httpErr.Message)
-	}
-
+	utils.CheckHttpError(httpErr)
 	return c.JSON(200, "successfully deleted")
 }

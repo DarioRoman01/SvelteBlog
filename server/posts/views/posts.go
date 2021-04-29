@@ -19,56 +19,43 @@ var postsController *controllers.PostsController
 
 func (p *PostsViews) CreatePostView(c echo.Context) error {
 	var post models.Post
-	if err := c.Bind(&post); err != nil {
-		return echo.NewHTTPError(423, "unable to parse request body")
-	}
+	err := c.Bind(&post)
+	utils.CheckRequestBodyError(err)
 
 	userId := c.Request().Context().Value("user").(uint)
 	post.UserID = userId
 	httpErr := postsController.CreatePost(&post, p.DB)
-	if httpErr != nil {
-		return httpErr
-	}
+	utils.CheckHttpError(httpErr)
 
 	return c.JSON(201, post)
 }
 
 func (p *PostsViews) GetPostView(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		return echo.NewHTTPError(400, "invalid id")
-	}
+	utils.CheckIDParamError(err)
 
 	post, httpErr := postsController.GetPost(id, p.DB)
-	if httpErr != nil {
-		return httpErr
-	}
+	utils.CheckHttpError(httpErr)
 
 	return c.JSON(200, post)
 }
 
 func (p *PostsViews) DeletePostView(c echo.Context) error {
-	id, _ := strconv.Atoi(c.Param("id"))
+	id, err := strconv.Atoi(c.Param("id"))
+	utils.CheckIDParamError(err)
 	userId := c.Request().Context().Value("user").(int)
-	err := postsController.DeletePost(id, userId, p.DB)
-	if err != nil {
-		return err
-	}
+	httpErr := postsController.DeletePost(id, userId, p.DB)
+	utils.CheckHttpError(httpErr)
 
 	return c.JSON(200, "successfully deleted")
 }
 
 func (p *PostsViews) GetPostsView(c echo.Context) error {
 	limit, err := strconv.Atoi(c.QueryParam("limit"))
-	if err != nil {
-		return echo.NewHTTPError(400, "invalid limit")
-	}
+	utils.CheckLimitParamError(err)
 
 	cursor := c.QueryParam("cursor")
-	httpErr := utils.ValidateCursor(cursor)
-	if httpErr != nil {
-		return httpErr
-	}
+	utils.ValidateCursor(cursor)
 
 	userId := c.Request().Context().Value("user").(int)
 	posts, hasMore := postsController.GetPosts(limit, &cursor, userId, p.DB)
@@ -79,15 +66,10 @@ func (p *PostsViews) GetPostsView(c echo.Context) error {
 func (p *PostsViews) ToggleLikeView(c echo.Context) error {
 	var body map[string]int
 	err := (&echo.DefaultBinder{}).BindBody(c, &body)
-	if err != nil {
-		return c.JSON(423, "unable to parse request body")
-	}
+	utils.CheckRequestBodyError(err)
 
 	postId, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		return echo.NewHTTPError(400, "invalid id")
-	}
-
+	utils.CheckIDParamError(err)
 	userId := c.Request().Context().Value("user").(int)
 	likedOrDisliked := postsController.SetLike(postId, userId, body["value"], p.DB)
 
@@ -106,15 +88,10 @@ func (p *PostsViews) GetUserPostsView(c echo.Context) error {
 
 	userId := c.Request().Context().Value("user").(int)
 	profileId, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		return echo.NewHTTPError(400, "invalid id")
-	}
+	utils.CheckIDParamError(err)
 
 	cursor := c.QueryParam("cursor")
-	httpErr := utils.ValidateCursor(cursor)
-	if httpErr != nil {
-		return httpErr
-	}
+	utils.ValidateCursor(cursor)
 
 	posts, hasMore := postsController.GetUserPosts(limit, userId, profileId, &cursor, p.DB)
 	return c.JSON(200, models.PaginatedPosts{Posts: posts, HasMore: hasMore})
