@@ -18,7 +18,7 @@ func init() {
 	}
 }
 
-// send email to user to change password
+// send email to user to change password or verify its account
 func SendEmail(user *models.User, emailType string) bool {
 	client, ctx := getMailSlurpClient()
 	inbox, _, _ := client.InboxControllerApi.CreateInbox(ctx, nil)

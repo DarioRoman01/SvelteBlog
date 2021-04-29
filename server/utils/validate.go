@@ -28,6 +28,15 @@ func ValidateRegister(input models.UserRegisterInput) *echo.HTTPError {
 	return nil
 }
 
+func ValidateCursor(cursor string) *echo.HTTPError {
+	cursorRegex := `[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1]) (2[0-3]|[01][0-9]):[0-5][0-9]`
+	if m, _ := regexp.MatchString(cursorRegex, cursor); !m {
+		return echo.NewHTTPError(400, "invalid cursor")
+	}
+
+	return nil
+}
+
 // return a bad request error with a field and
 // message for the error.
 func InvalidInput(field, message string) *echo.HTTPError {

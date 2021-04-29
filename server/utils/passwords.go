@@ -17,7 +17,7 @@ type PasswordConfig struct {
 	KeyLen  uint32
 }
 
-// Generate hash from password given
+// Generate hash from given password
 func GeneratePassword(c *PasswordConfig, passwd string) (string, error) {
 	salt := make([]byte, 16)
 	if _, err := rand.Read(salt); err != nil {

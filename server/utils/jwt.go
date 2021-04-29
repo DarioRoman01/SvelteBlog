@@ -17,8 +17,12 @@ func init() {
 	}
 }
 
+// store variable to be use globaly in all the files
 var Store = sessions.NewCookieStore([]byte(os.Getenv("SECRET-KEY")))
 
+// generates new jwt token with the user id and token type
+// there is only tree types "change-password",
+// "verify", and "session"
 func GenerateToken(id uint, tokenType string) (string, *echo.HTTPError) {
 
 	claims := jwt.MapClaims{}
