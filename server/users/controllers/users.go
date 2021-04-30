@@ -35,7 +35,7 @@ func (u *UsersController) CreateUser(user *models.User, db *gorm.DB) (*models.Us
 	}
 
 	user.Password = hashPassword
-	if err := db.Create(&user).Error; err != nil {
+	if err := db.Table("users").Create(user).Error; err != nil {
 		return nil, echo.NewHTTPError(500, "unable to create user")
 	}
 
@@ -114,7 +114,7 @@ func (u *UsersController) ChangePassword(id, newPassword string, db *gorm.DB) (*
 // return user by email
 func (u *UsersController) GetUserByEmail(email string, db *gorm.DB) *models.User {
 	var user models.User
-	db.Model(&models.User{}).Where("email = ?", email).Find(&user)
+	db.Table("users").Where("email = ?", email).Find(&user)
 	if user.ID == 0 {
 		return nil
 	}
