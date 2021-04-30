@@ -11,19 +11,48 @@ import (
 // group all posts related functions in the db
 type PostsController struct{}
 
-// store the post in the db
+// store the post in the db and update profile posted counter with transaction
 func (p *PostsController) CreatePost(post *models.Post, db *gorm.DB) *echo.HTTPError {
-	if err := db.Create(&post).Error; err != nil {
+	tx := db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	if err := tx.Error; err != nil {
+		return echo.NewHTTPError(500, "unable to start transaction")
+	}
+
+	if err := tx.Table("posts").Create(&post).Error; err != nil {
+		tx.Rollback()
 		return echo.NewHTTPError(500, "unable to create post.")
+	}
+
+	err := tx.Exec(`UPDATE "profiles" SET posted = posted + 1 WHERE user_id = ?`, post.UserID).Error
+	if err != nil {
+		tx.Rollback()
+		return echo.NewHTTPError(500, "unable to update profile")
+	}
+	if err := tx.Commit().Error; err != nil {
+		return echo.NewHTTPError(500, "unable to ccommit")
 	}
 
 	return nil
 }
 
 // retrieve post by id
-func (p *PostsController) GetPost(id int, db *gorm.DB) (*models.Post, *echo.HTTPError) {
+func (p *PostsController) GetPost(id int, userId uint, db *gorm.DB) (*models.Post, *echo.HTTPError) {
 	var post models.Post
-	db.Model(&models.Post{}).Where("id = ?", id).Find(&post)
+	db.Raw(`
+		SELECT p.*,
+		(SELECT "value" from "likes" 
+		WHERE "user_id" = ? and "post_id" = p.id) as "StateValue",
+		(SELECT username FROM "profiles"
+		WHERE user_id = p.user_id) as "Creator"
+		FROM posts p
+		WHERE p.id = ?
+	`, userId, id).Find(&post)
 
 	if post.ID == 0 {
 		return nil, echo.NewHTTPError(404, "post does not exist")
@@ -34,9 +63,31 @@ func (p *PostsController) GetPost(id int, db *gorm.DB) (*models.Post, *echo.HTTP
 
 // delete post from the db
 func (p *PostsController) DeletePost(id int, userID int, db *gorm.DB) *echo.HTTPError {
-	tx := db.Where("id = ? AND user_id = ?", id, userID).Delete(&models.Post{})
-	if tx.RowsAffected == 0 || tx.Error != nil {
-		return echo.NewHTTPError(400, "post does not exist or you are not the owner")
+	tx := db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	if err := tx.Error; err != nil {
+		return echo.NewHTTPError(500, "unable to start transaction")
+	}
+
+	result := tx.Exec(`DELETE FROM "posts" WHERE id = ? AND user_id = ?`, id, userID)
+	if result.RowsAffected == 0 || result.Error != nil {
+		tx.Rollback()
+		return echo.NewHTTPError(400, "post does not exists or you are not the owner")
+	}
+
+	err := tx.Exec(`UPDATE "profiles" SET posted = posted - 1 WHERE user_id = ?`, userID).Error
+	if err != nil {
+		tx.Rollback()
+		return echo.NewHTTPError(500, "unable to update profile")
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return echo.NewHTTPError(500, "unable to ccommit")
 	}
 
 	return nil
@@ -50,12 +101,12 @@ func (p *PostsController) GetPosts(limit int, cursor *string, userId int, db *go
 	}
 	limit++
 
-	if cursor != nil {
+	if *cursor != "" {
 		db.Raw(`
 			SELECT p.*,
-			( SELECT "value" from "likes" 
-			WHERE "user_id" = ? and "post_id" = p.id) as "StateValue"
-			(SELECT * FROM "profiles"
+			(SELECT "value" from "likes" 
+			WHERE "user_id" = ? and "post_id" = p.id) as "StateValue",
+			(SELECT username FROM "profiles"
 			WHERE user_id = p.user_id) as "Creator"
 			FROM posts p
 			WHERE p.created_at < ?
@@ -65,9 +116,9 @@ func (p *PostsController) GetPosts(limit int, cursor *string, userId int, db *go
 	} else {
 		db.Raw(`
 			SELECT p.*,
-			( SELECT "value" from "updoots" 
-			WHERE "user_id" = ? and "post_id" = p.id) as "StateValue"
-			(SELECT * FROM "profiles"
+			( SELECT "value" from "likes" 
+			WHERE "user_id" = ? and "post_id" = p.id) as "StateValue",
+			(SELECT "username" FROM "profiles"
 			WHERE user_id = p.user_id) as "Creator"
 			FROM posts p
 			ORDER BY p.created_at DESC
@@ -81,7 +132,7 @@ func (p *PostsController) GetPosts(limit int, cursor *string, userId int, db *go
 		return posts[0 : limit-1], true
 	}
 
-	return posts[0 : len(posts)-1], false
+	return posts, false
 }
 
 // set user like or quit their like depending if he liked the post before

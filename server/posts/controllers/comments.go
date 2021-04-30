@@ -12,7 +12,7 @@ type CommentsController struct{}
 
 // create comment in the db
 func (c *CommentsController) AddComment(comment *models.Comment, db *gorm.DB) *echo.HTTPError {
-	if err := db.Create(&comment).Error; err != nil {
+	if err := db.Table("comments").Create(&comment).Error; err != nil {
 		return echo.NewHTTPError(500, "unable to create post")
 	}
 
@@ -27,21 +27,25 @@ func (c *CommentsController) GetPostComments(postId, limit int, cursor *string, 
 	}
 	limit++
 
-	if cursor != nil {
+	if *cursor != "" {
 		db.Raw(`
 			SELECT c.*,
+			(SELECT username FROM "profiles"
+			WHERE user_id = c.user_id) as "Creator"
 			FROM comments c
-			WHERE post_id = ?
+			WHERE c.post_id = ?
 			AND c.created_at < ?
-			ORDER BY p.created_at DESC
+			ORDER BY c.created_at DESC
 			LIMIT ?
 		`, postId, cursor, limit).Find(&comments)
 	} else {
 		db.Raw(`
-			SELECT p.*,
+			SELECT c.*,
+			(SELECT username FROM "profiles"
+			WHERE user_id = c.user_id) as "Creator"
 			FROM comments c
-			WHERE post_id = ?
-			ORDER BY p.created_at DESC
+			WHERE c.post_id = ?
+			ORDER BY c.created_at DESC
 			LIMIT ?
 		`, postId, limit).Find(&comments)
 	}
@@ -53,7 +57,7 @@ func (c *CommentsController) GetPostComments(postId, limit int, cursor *string, 
 		return comments[0 : limit-1], true
 	}
 
-	return comments[0 : len(comments)-1], false
+	return comments, false
 }
 
 // delete comment from the db
