@@ -2,9 +2,7 @@ package routes
 
 import (
 	"blogv2/db"
-	pModels "blogv2/posts/models"
 	pViews "blogv2/posts/views"
-	"blogv2/users/models"
 	"blogv2/users/views"
 	"log"
 
@@ -18,13 +16,13 @@ func SetRoutes(e *echo.Echo) {
 		log.Fatal("unable to connect to postgres: ", err)
 	}
 
-	psql.AutoMigrate(
-		&models.User{},
-		&models.Profile{},
-		&pModels.Post{},
-		&pModels.Comment{},
-		&pModels.Like{},
-	)
+	// psql.AutoMigrate(
+	// 	&models.User{},
+	// 	&models.Profile{},
+	// 	&pModels.Post{},
+	// 	&pModels.Comment{},
+	// 	&pModels.Like{},
+	// )
 
 	// handlers
 	usersViews := &views.UsersViews{DB: psql}
@@ -45,11 +43,12 @@ func SetRoutes(e *echo.Echo) {
 	e.POST("/verify", usersViews.VerifyAccountView)
 
 	// profile views
-	e.PATCH("/profile/:id", profileViews.UpdateProfileView)
+	e.GET("/me", profileViews.MeView)
 	e.POST("/profile", profileViews.CreateProfileView)
+	e.POST("/profile/:id/follow", profileViews.FollowView)
+	e.PATCH("/profile/:id", profileViews.UpdateProfileView)
 	e.GET("/profile/:username", profileViews.GetProfileView)
 	e.GET("/profile/:id/posts", postsViews.GetUserPostsView)
-	e.POST("/profile/:id/follow", profileViews.FollowView)
 
 	// posts views
 	e.GET("/posts", postsViews.GetPostsView)

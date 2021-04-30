@@ -19,7 +19,7 @@ func init() {
 }
 
 // routes to be skipped
-var SkipperRoutes = [4]string{"/login", "/signup", "/forgot-password", "/change-password"}
+var SkipperRoutes = [5]string{"/login", "/register", "/forgot-password", "/change-password", "/verify"}
 
 /*
 IsAuth middleware check if the path has to be skipped,
@@ -51,7 +51,7 @@ func IsAuth(next echo.HandlerFunc) echo.HandlerFunc {
 			return echo.NewHTTPError(400, "invalid token")
 		}
 
-		ctx := context.WithValue(c.Request().Context(), "user", claims["user_id"])
+		ctx := context.WithValue(c.Request().Context(), "user", uint(claims["user_id"].(float64)))
 		c.SetRequest(c.Request().WithContext(ctx))
 		return next(c)
 	}
@@ -67,7 +67,7 @@ func CORSconfig() echo.MiddlewareFunc {
 	return cors
 }
 
-func contains(arr [4]string, str string) bool {
+func contains(arr [5]string, str string) bool {
 	for _, a := range arr {
 		if a == str {
 			return true
