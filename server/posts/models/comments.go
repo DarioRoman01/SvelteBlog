@@ -9,6 +9,7 @@ type Comment struct {
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 	Body      string    `json:"body"`
+	Creator   string    `json:"creator"`
 }
 
 // model for comments pagination

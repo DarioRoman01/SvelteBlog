@@ -17,9 +17,9 @@ type Post struct {
 	Title      string         `json:"title"`
 	Body       string         `json:"body"`
 	Likes      uint           `json:"likes" gorm:"default=0"`
-	Creator    interface{}    `json:"creator"`
-	Comments   []Comment      `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:PostID;references:ID;"`
-	Liked      []Like
+	Creator    string         `json:"creator"`
+	Comments   []Comment      `json:"-" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:PostID;references:ID;"`
+	Liked      []Like         `json:"-"`
 }
 
 // model for posts pagination
