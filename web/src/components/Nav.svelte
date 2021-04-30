@@ -1,47 +1,78 @@
 <script lang="ts">
-  import { goto, url } from '@roxi/routify';
-  import { logout, api, User } from "../requests/users"
-  import { AppBar, Button, Icon, MaterialApp } from 'svelte-materialify';
-  import { mdiPlusCircle, mdiArrowRightCircle, mdiAccountCircle  } from '@mdi/js';
+  import { goto, redirect } from "@roxi/routify";
+  import { logout, api, User } from "../requests/users";
+  import type { Profile } from "../requests/profile";
+  import {
+    AppBar,
+    Button,
+    Icon,
+    MaterialApp,
+    Avatar,
+  } from "svelte-materialify";
+  import {
+    mdiPlusCircle,
+    mdiArrowRightCircle,
+    mdiAccountCircle,
+    mdiHome,
+  } from "@mdi/js";
+  import { onMount } from "svelte";
 
-  let loggedIn: boolean;
-  loggedIn = false;
+  export let isLoggedIn: boolean;
+  let user: Profile;
 
   const handleLogout = () => {
     const out = logout();
-    out.then(() => loggedIn = false);
+    out.then(() => $redirect("./index"));
+  };
+
+  if (isLoggedIn) {
+    onMount(async () => {
+      user = await api<Profile>("/me");
+    });
   }
-
-  const me = api<User>(`${process.env.API_URL}/me`);
-  me.then(() => loggedIn = true);
-
 </script>
 
 <MaterialApp>
-  <AppBar>
+  <AppBar class="pink darken-3 p4">
     <span slot="title">
-      <a href={$url("./index")} 
-        class="text-decoration-none"
+      <Button
+        fab
+        size="small"
+        class="pink lighten-3"
+        on:click={$goto("./index")}
       >
-        .Blog
-      </a>
+        <Icon path={mdiHome} />
+      </Button>
     </span>
-    <div style="flex-grow:1"/>
-    {#if loggedIn}
-      <Button class="primary-color" on:click={$goto(`./profile`)}>
-        <Icon path={mdiAccountCircle}/>
+    <div style="flex-grow:1" />
+    {#if isLoggedIn}
+      <Button
+        fab
+        size="small"
+        class="pink lighten-3"
+        on:click={$goto(`./profile/${user.username}`)}
+      >
+        <Icon path={mdiAccountCircle} />
       </Button>
-      <Button class="primary-color" on:click={$goto("./create-expense")}>
-        <Icon path={mdiPlusCircle}/>
+      <Button
+        fab
+        size="small"
+        class="ml-3 pink lighten-3"
+        on:click={$goto("./create-expense")}
+      >
+        <Icon path={mdiPlusCircle} />
       </Button>
-      <Button class="ml-3 mr-1 primary-color" on:click={handleLogout}>
-        <Icon path={mdiArrowRightCircle}/>
+      <Button
+        fab
+        size="small"
+        class="ml-3 mr-1 pink lighten-3"
+        on:click={handleLogout}
+      >
+        <Icon path={mdiArrowRightCircle} />
       </Button>
     {:else}
-      <Button class="primary-color" on:click={$goto("./login")}>
-        login
-      </Button>
-      <Button class="ml-3 mr-1 primary-color" on:click={$goto("./register")}>
+      <Button class="pink lighten-3" on:click={$goto("./login")}>login</Button>
+      <Button class="ml-3 mr-1 pink lighten-3" on:click={$goto("./register")}>
         register
       </Button>
     {/if}

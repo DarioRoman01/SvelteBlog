@@ -13,7 +13,7 @@
 
   let posts: PaginatedPosts;
   onMount(async () => {
-    posts = await api<PaginatedPosts>("/posts")
+    posts = await api<PaginatedPosts>("/posts?limit=10")
   });
 </script>
 
@@ -32,6 +32,6 @@
       </div>
     {/if}
   {:else}
-    <ProgressCircular size={50} indeterminate color="primary" />
+    <ProgressCircular size={50} indeterminate color="pink lighten-3" />
   {/if}
 </MaterialApp>
