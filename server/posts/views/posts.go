@@ -20,13 +20,16 @@ var postsController *controllers.PostsController
 // handle create post request
 func (p *PostsViews) CreatePostView(c echo.Context) error {
 	var post models.Post
-	err := c.Bind(&post)
-	utils.CheckRequestBodyError(err)
+	if err := c.Bind(&post); err != nil {
+		return utils.RequestBodyError
+	}
 
 	userId := c.Request().Context().Value("user").(uint)
 	post.UserID = userId
 	httpErr := postsController.CreatePost(&post, p.DB)
-	utils.CheckHttpError(httpErr)
+	if httpErr != nil {
+		return httpErr
+	}
 
 	return c.JSON(201, post)
 }
@@ -34,10 +37,14 @@ func (p *PostsViews) CreatePostView(c echo.Context) error {
 // retrieve post by id and validate id in url params
 func (p *PostsViews) GetPostView(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))
-	utils.CheckIDParamError(err)
-
-	post, httpErr := postsController.GetPost(id, p.DB)
-	utils.CheckHttpError(httpErr)
+	if err != nil {
+		return echo.NewHTTPError(423, "invalid id")
+	}
+	userId := c.Request().Context().Value("user").(uint)
+	post, httpErr := postsController.GetPost(id, userId, p.DB)
+	if httpErr != nil {
+		return httpErr
+	}
 
 	return c.JSON(200, post)
 }
@@ -45,10 +52,15 @@ func (p *PostsViews) GetPostView(c echo.Context) error {
 // handle delete post request and validate url params
 func (p *PostsViews) DeletePostView(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))
-	utils.CheckIDParamError(err)
-	userId := c.Request().Context().Value("user").(int)
-	httpErr := postsController.DeletePost(id, userId, p.DB)
-	utils.CheckHttpError(httpErr)
+	if err != nil {
+		return utils.IdParamError
+	}
+
+	userId := c.Request().Context().Value("user").(uint)
+	httpErr := postsController.DeletePost(id, int(userId), p.DB)
+	if httpErr != nil {
+		return httpErr
+	}
 
 	return c.JSON(200, "successfully deleted")
 }
@@ -56,13 +68,20 @@ func (p *PostsViews) DeletePostView(c echo.Context) error {
 // handle list posts validating url query params for pagination
 func (p *PostsViews) GetPostsView(c echo.Context) error {
 	limit, err := strconv.Atoi(c.QueryParam("limit"))
-	utils.CheckLimitParamError(err)
+	if err != nil {
+		return utils.LimitError
+	}
 
 	cursor := c.QueryParam("cursor")
-	utils.ValidateCursor(cursor)
+	if cursor != "" {
+		httpErr := utils.ValidateCursor(cursor)
+		if httpErr != nil {
+			return httpErr
+		}
+	}
 
-	userId := c.Request().Context().Value("user").(int)
-	posts, hasMore := postsController.GetPosts(limit, &cursor, userId, p.DB)
+	userId := c.Request().Context().Value("user").(uint)
+	posts, hasMore := postsController.GetPosts(limit, &cursor, int(userId), p.DB)
 
 	return c.JSON(200, models.PaginatedPosts{Posts: posts, HasMore: hasMore})
 }
@@ -71,12 +90,17 @@ func (p *PostsViews) GetPostsView(c echo.Context) error {
 func (p *PostsViews) ToggleLikeView(c echo.Context) error {
 	var body map[string]int
 	err := (&echo.DefaultBinder{}).BindBody(c, &body)
-	utils.CheckRequestBodyError(err)
+	if err != nil {
+		return utils.RequestBodyError
+	}
 
 	postId, err := strconv.Atoi(c.Param("id"))
-	utils.CheckIDParamError(err)
-	userId := c.Request().Context().Value("user").(int)
-	likedOrDisliked := postsController.SetLike(postId, userId, body["value"], p.DB)
+	if err != nil {
+		return utils.IdParamError
+	}
+
+	userId := c.Request().Context().Value("user").(uint)
+	likedOrDisliked := postsController.SetLike(postId, int(userId), body["value"], p.DB)
 
 	if !likedOrDisliked {
 		return echo.NewHTTPError(500, "unable to set like")
@@ -94,10 +118,15 @@ func (p *PostsViews) GetUserPostsView(c echo.Context) error {
 
 	userId := c.Request().Context().Value("user").(int)
 	profileId, err := strconv.Atoi(c.Param("id"))
-	utils.CheckIDParamError(err)
+	if err != nil {
+		return utils.IdParamError
+	}
 
 	cursor := c.QueryParam("cursor")
-	utils.ValidateCursor(cursor)
+	httpErr := utils.ValidateCursor(cursor)
+	if httpErr != nil {
+		return httpErr
+	}
 
 	posts, hasMore := postsController.GetUserPosts(limit, userId, profileId, &cursor, p.DB)
 	return c.JSON(200, models.PaginatedPosts{Posts: posts, HasMore: hasMore})
