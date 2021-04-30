@@ -5,6 +5,7 @@
     Button, 
     MaterialApp 
   } from "svelte-materialify";
+  import Nav from "../../components/Nav.svelte";
   import { api } from "../../requests/users";
   import type { Post } from "../../requests/posts"
   import { params } from "@roxi/routify";
@@ -14,14 +15,15 @@
 
   onMount(async () => {
     post = await api<Post>(`/posts/${$params["id"]}`)
-  })
+  });
 </script>
 
 <MaterialApp>
+  <Nav isLoggedIn={true}/>
   <div class="d-flex justify-center mt-4 mb-4">
     <Card style="max-width:800px;">
       <CardText>
-        <div>{post.creator.username}</div>
+        <div>{post.creator}</div>
         <div class="text--primary text-h4">{post.title}</div>
         <div class="text--primary">
           {post.body}
