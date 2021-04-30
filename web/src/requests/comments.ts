@@ -4,6 +4,7 @@ export interface Comment {
   createdAt: string;
   updatedAt: string;
   body: string;
+  creator: string;
 }
 
 export interface PaginatedComments {

@@ -1,3 +1,5 @@
+import type { Profile } from "./profile";
+
 const url = process.env.API_URL
 const headers = {
   Accept: "application/json",
@@ -19,6 +21,7 @@ export interface User {
   createdAt: string;
   updatedAt: string;
   email: string;
+  profile: Profile;
 }
 
 // api call with generics for GET request

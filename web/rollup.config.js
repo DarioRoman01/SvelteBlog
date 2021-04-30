@@ -71,6 +71,7 @@ export default {
                     ...config().parsed
                 } 
             }),
+            preventAssignment: true
         }),
 
         // resolve matching modules from current working directory
