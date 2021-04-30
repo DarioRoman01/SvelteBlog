@@ -28,6 +28,7 @@ func ValidateRegister(input models.UserRegisterInput) *echo.HTTPError {
 	return nil
 }
 
+// validate cursor in url queryparams
 func ValidateCursor(cursor string) *echo.HTTPError {
 	cursorRegex := `[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1]) (2[0-3]|[01][0-9]):[0-5][0-9]`
 	if m, _ := regexp.MatchString(cursorRegex, cursor); !m {
@@ -37,37 +38,10 @@ func ValidateCursor(cursor string) *echo.HTTPError {
 	return nil
 }
 
-func CheckIDParamError(err error) *echo.HTTPError {
-	if err != nil {
-		return echo.NewHTTPError(400, "invalid id")
-	}
-
-	return nil
-}
-
-func CheckLimitParamError(err error) *echo.HTTPError {
-	if err != nil {
-		return echo.NewHTTPError(400, "invalid limit")
-	}
-
-	return nil
-}
-
-func CheckRequestBodyError(err error) *echo.HTTPError {
-	if err != nil {
-		return echo.NewHTTPError(423, "unable to parse request body")
-	}
-
-	return nil
-}
-
-func CheckHttpError(err *echo.HTTPError) *echo.HTTPError {
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
+// variables that holds common requests errors
+var IdParamError = echo.NewHTTPError(400, "invalid id")
+var LimitError = echo.NewHTTPError(400, "invalid limit")
+var RequestBodyError = echo.NewHTTPError(423, "unable to parse request body")
 
 // return a bad request error with a field and
 // message for the error.

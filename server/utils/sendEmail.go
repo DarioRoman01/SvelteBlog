@@ -28,12 +28,12 @@ func SendEmail(user *models.User, emailType string) bool {
 	var token string
 
 	if emailType == "change" {
-		token, _ = GenerateToken(user.ID, "email_confirmation")
+		token, _ = GenerateToken(user.ID, "change_password")
 		body = fmt.Sprintf(`<a href="%s/change-password/%s">reset password</a>`, os.Getenv("CORS_ORIGIN"), token)
 		subject = "change password"
 
 	} else if emailType == "verify" {
-		token, _ = GenerateToken(user.ID, "change_password")
+		token, _ = GenerateToken(user.ID, "email_confirmation")
 		body = fmt.Sprintf(`<a href="%s/change-password/%s">reset password</a>`, os.Getenv("CORS_ORIGIN"), token)
 		subject = "verify account"
 	}
