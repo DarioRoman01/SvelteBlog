@@ -41,6 +41,7 @@ func SetRoutes(e *echo.Echo) {
 	e.POST("/change-password", usersViews.ChangePasswordView)
 	e.POST("/forgot-password", usersViews.ForgotPasswordView)
 	e.POST("/verify", usersViews.VerifyAccountView)
+	e.POST("/logout", usersViews.LogoutView)
 
 	// profile views
 	e.GET("/me", profileViews.MeView)

@@ -83,6 +83,7 @@ func (u *UsersViews) LoginView(c echo.Context) error {
 }
 
 // handle users verifycation validating the token send by the user
+// and generate a cookie with a new jwt token for session
 func (u *UsersViews) VerifyAccountView(c echo.Context) error {
 	var body map[string]string
 	err := (&echo.DefaultBinder{}).BindBody(c, &body)
@@ -107,6 +108,14 @@ func (u *UsersViews) VerifyAccountView(c echo.Context) error {
 		return echo.NewHTTPError(500, "unable to update user status")
 	}
 
+	sessionToken, httpErr := utils.GenerateToken(uint(claims["user_id"].(float64)), "session")
+	if httpErr != nil {
+		return httpErr
+	}
+
+	session, _ := utils.Store.Get(c.Request(), "jwt")
+	session.Values["token"] = sessionToken
+	session.Save(c.Request(), c.Response().Writer)
 	return c.JSON(200, "account verified succsefully")
 }
 
@@ -173,7 +182,7 @@ func (u *UsersViews) LogoutView(c echo.Context) error {
 		return echo.NewHTTPError(500, "unable to delete session")
 	}
 
-	return c.NoContent(200)
+	return c.JSON(200, "succesfully logout")
 }
 
 // retrieve all followers of the user paginated

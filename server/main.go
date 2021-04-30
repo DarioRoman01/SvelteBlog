@@ -3,6 +3,7 @@ package main
 import (
 	"blogv2/routes"
 	"log"
+	"os"
 
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
@@ -15,5 +16,5 @@ func main() {
 
 	e := echo.New()
 	routes.SetRoutes(e)
-	e.Logger.Fatal(e.Start(":1323"))
+	e.Logger.Fatal(e.Start(":" + os.Getenv("PORT")))
 }

@@ -47,6 +47,8 @@ func (u *UsersController) LoginByEmail(input *models.UserLoginInput, db *gorm.DB
 	user := u.GetUserByEmail(input.Email, db)
 	if user == nil {
 		return nil, utils.InvalidInput("email", "email does not exist")
+	} else if !user.IsVerified {
+		return nil, utils.InvalidInput("user", "your account is not active yet")
 	}
 
 	ok, _ := utils.ComparePasswords(input.Password, user.Password)
