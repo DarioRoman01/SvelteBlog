@@ -34,7 +34,7 @@ func SendEmail(user *models.User, emailType string) bool {
 
 	} else if emailType == "verify" {
 		token, _ = GenerateToken(user.ID, "email_confirmation")
-		body = fmt.Sprintf(`<a href="%s/change-password/%s">reset password</a>`, os.Getenv("CORS_ORIGIN"), token)
+		body = fmt.Sprintf(`<a href="%s/verify/%s">verify account</a>`, os.Getenv("CORS_ORIGIN"), token)
 		subject = "verify account"
 	}
 

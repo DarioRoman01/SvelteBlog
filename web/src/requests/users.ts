@@ -1,5 +1,4 @@
 import type { Profile } from "./profile";
-
 const url = process.env.API_URL
 const headers = {
   Accept: "application/json",
@@ -59,11 +58,11 @@ export const login =  async ({email, password}): Promise<User> => {
 // send register request to server
 export const register = async (
   email: string, 
-  phoneNumber: number, 
+  phoneNumber: string, 
   password: string,
   passwordConfirmation: string
 ): Promise<User> => {
-  const res = await fetch(`${url}/signup`, {
+  const res = await fetch(`${url}/register`, {
     method: "POST",
     body: JSON.stringify({
       email: email,
@@ -105,13 +104,15 @@ export const forgotPassword = async (email: string) => {
 // handles users change password request
 export const changePassword = async (
   token: string, 
-  newPassword: string
+  newPassword: string,
+  newPasswordConfirmation: string
   ): Promise<User> => {
   const res = await fetch(`${url}/change-password`, {
     method: "POST",
     body: JSON.stringify({
       token: token,
-      newPassword: newPassword
+      newPassword: newPassword,
+      newPasswordConfirmation: newPasswordConfirmation,
     }),
     headers: headers,
     credentials: "include",

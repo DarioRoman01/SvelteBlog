@@ -27,7 +27,6 @@ func (p *ProfileController) CreateProfile(profile *models.Profile, db *gorm.DB) 
 // handle profile update and validate that the requesting user is owner of the profile.
 func (p *ProfileController) UpdateProfile(userID uint, id uint, data *models.Profile, db *gorm.DB) (*models.Profile, *echo.HTTPError) {
 	var storeProfile models.Profile
-
 	db.Table("profiles").Where("user_id = ?", id).Find(&storeProfile)
 
 	if storeProfile.UserID == 0 {
