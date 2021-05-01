@@ -3,7 +3,8 @@
     Card,
     CardText,
     Button, 
-    MaterialApp 
+    MaterialApp,
+    ProgressCircular 
   } from "svelte-materialify";
   import Nav from "../../components/Nav.svelte";
   import { api } from "../../requests/users";
@@ -20,15 +21,21 @@
 
 <MaterialApp>
   <Nav isLoggedIn={true}/>
-  <div class="d-flex justify-center mt-4 mb-4">
-    <Card style="max-width:800px;">
-      <CardText>
-        <div>{post.creator}</div>
-        <div class="text--primary text-h4">{post.title}</div>
-        <div class="text--primary">
-          {post.body}
-        </div>
-      </CardText>
-    </Card>
-  </div>
+  {#if post}  
+    <div class="d-flex justify-center mt-4 mb-4">
+      <Card style="max-width:800px;">
+        <CardText>
+          <div>{post.creator}</div>
+          <div class="text--primary text-h4">{post.title}</div>
+          <div class="text--primary">
+            {post.body}
+          </div>
+        </CardText>
+      </Card>
+    </div>
+  {:else}
+    <div class="d-flex justify-center">
+      <ProgressCircular size={50} indeterminate color="pink lighten-3" />
+    </div>
+  {/if}
 </MaterialApp>
