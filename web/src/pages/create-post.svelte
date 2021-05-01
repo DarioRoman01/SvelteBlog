@@ -25,7 +25,7 @@
   <Nav isLoggedIn={true} />
   <div class="d-flex justify-center mt-4">
     <div class="d-flex flex-column">
-      <h3 class="text-h3 mb-6">Add expense</h3>
+      <h3 class="text-h3 mb-6">create post</h3>
       <div style="width: 700px;" class="mb-4 mt-3">
         <TextField color="pink lighten-3" bind:value={title}>
           title

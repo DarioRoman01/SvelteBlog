@@ -1,3 +1,5 @@
+import { CustomError } from "./users";
+
 const url = process.env.API_URL
 const headers =  {
   Accept: "application/json",
@@ -11,6 +13,7 @@ export interface Profile {
   biography: string;
   followers: number;
   posted: number;
+  followState: boolean;
 }
 
 export const CreateProfile = async (
@@ -35,24 +38,20 @@ export const CreateProfile = async (
   return await res.json();
 };
 
-export const updateProfile = async (
-  id: number,
-  username: string,
-  biography: string
-): Promise<Profile> => {
-  const res = await fetch(`${url}/profile/${id}`, {
+export const updateProfile = async (profile: Profile): Promise<Profile> => {
+  const res = await fetch(`${url}/profile/${profile.userID}`, {
     method: "PATCH",
     body: JSON.stringify({
-      username: username,
-      biography: biography
+      username: profile.username,
+      biography: profile.biography
     }),
     headers: headers,
     credentials: "include"
   });
 
   if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err);
+    const err: CustomError = await res.json();
+    throw new CustomError(err.field, err.message);
   }
 
   return await res.json();

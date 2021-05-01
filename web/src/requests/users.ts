@@ -133,6 +133,7 @@ export const verify = async (token: string) => {
       token: token
     }),
     headers: headers,
+    credentials: "include",
   });
 
   if (!res.ok) {
