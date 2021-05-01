@@ -26,7 +26,7 @@
     {/each}
     {#if posts.hasMore == true}
       <div class="d-flex justify-center mt-4 mb-3">
-        <Button class="primary-color">
+        <Button class="pink lighten-3">
           <Icon path={mdiPlusCircle}/>
         </Button>
       </div>

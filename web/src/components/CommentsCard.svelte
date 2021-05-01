@@ -15,8 +15,7 @@
   <div class="d-flex justify-center mt-4 mb-4">
     <Card style="max-width:800px;">
       <CardText>
-        <div>username</div>
-        <div class="text--primary text-h4">created</div>
+        <div>{comment.creator}</div>
         <div class="text--primary">
           {comment.body}
         </div>

@@ -1,13 +1,12 @@
 <script lang="ts">
-  import { goto, redirect } from "@roxi/routify";
-  import { logout, api, User } from "../requests/users";
+  import { goto, redirect, url } from "@roxi/routify";
+  import { logout, api } from "../requests/users";
   import type { Profile } from "../requests/profile";
   import {
     AppBar,
     Button,
     Icon,
     MaterialApp,
-    Avatar,
   } from "svelte-materialify";
   import {
     mdiPlusCircle,
@@ -39,7 +38,7 @@
         fab
         size="small"
         class="pink lighten-3"
-        on:click={$goto("./index")}
+        on:click={$goto(isLoggedIn ? "/home" : "index")}
       >
         <Icon path={mdiHome} />
       </Button>
@@ -50,7 +49,7 @@
         fab
         size="small"
         class="pink lighten-3"
-        on:click={$goto(`./profile/${user.username}`)}
+        on:click={$goto(`/profile/${user.username}`)}
       >
         <Icon path={mdiAccountCircle} />
       </Button>
@@ -58,7 +57,7 @@
         fab
         size="small"
         class="ml-3 pink lighten-3"
-        on:click={$goto("./create-expense")}
+        on:click={$goto("/create-expense")}
       >
         <Icon path={mdiPlusCircle} />
       </Button>
