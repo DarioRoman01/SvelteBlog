@@ -75,7 +75,7 @@ func (p *ProfileController) Follow(userFromID, userToID int, db *gorm.DB) bool {
 	}
 
 	var userTo models.User
-	db.Table("users").Where("id = ?", userFromID).Find(&userTo)
+	db.Table("users").Where("id = ?", userToID).Find(&userTo)
 	if userTo.ID == 0 {
 		return false
 	}
@@ -88,25 +88,25 @@ func (p *ProfileController) Follow(userFromID, userToID int, db *gorm.DB) bool {
 			return false
 		}
 
-		db.Model(&userTo.Profile).Update("followers = followers + ?", 1)
+		db.Exec(`UPDATE "profiles" SET followers = followers + 1 WHERE user_id = ?`, userToID)
+		return true
+	} else {
+		err := db.Model(&userFrom).Association("Follow").Delete(&userTo)
+		if err != nil {
+			return false
+		}
+
+		db.Exec(`UPDATE "profiles" SET followers = followers - 1 WHERE user_id = ?`, userToID)
 		return true
 	}
-
-	err := db.Model(&userFrom).Association("Follow").Delete(&userFrom)
-	if err != nil {
-		return false
-	}
-
-	db.Model(&userTo.Profile).Update("followers = followers - ?", 1)
-	return true
 }
 
 // get follow state of the requesting user
 func (p *ProfileController) GetFollowState(userFromID, userToID int, db *gorm.DB) bool {
 	var followId int
 	db.Raw(`
-		SELECT follow_id,
-		FROM "user_follow",
+		SELECT follow_id
+		FROM "user_follow"
 		WHERE user_id = ?
 		AND follow_id =?
 	`, userFromID, userToID).Find(&followId)

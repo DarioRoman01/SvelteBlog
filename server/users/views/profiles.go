@@ -63,6 +63,11 @@ func (p *ProfileViews) GetProfileView(c echo.Context) error {
 		return echo.NewHTTPError(404, "unable to find that user")
 	}
 
+	currentUserId := c.Request().Context().Value("user").(uint)
+	if profile.UserID != currentUserId {
+		profile.FollowState = profileController.GetFollowState(int(currentUserId), int(profile.UserID), p.DB)
+	}
+
 	return c.JSON(200, profile)
 }
 
