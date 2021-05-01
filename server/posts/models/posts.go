@@ -17,7 +17,7 @@ type Post struct {
 	Title      string         `json:"title"`
 	Body       string         `json:"body"`
 	Likes      uint           `json:"likes" gorm:"default=0"`
-	Creator    string         `json:"creator"`
+	Creator    string         `json:"creator" gorm:"->"`
 	Comments   []Comment      `json:"-" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:PostID;references:ID;"`
 	Liked      []Like         `json:"-"`
 }

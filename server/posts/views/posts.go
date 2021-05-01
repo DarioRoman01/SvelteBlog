@@ -116,18 +116,20 @@ func (p *PostsViews) GetUserPostsView(c echo.Context) error {
 		return echo.NewHTTPError(400, "invalid limit")
 	}
 
-	userId := c.Request().Context().Value("user").(int)
+	userId := c.Request().Context().Value("user").(uint)
 	profileId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		return utils.IdParamError
 	}
 
 	cursor := c.QueryParam("cursor")
-	httpErr := utils.ValidateCursor(cursor)
-	if httpErr != nil {
-		return httpErr
+	if cursor != "" {
+		httpErr := utils.ValidateCursor(cursor)
+		if httpErr != nil {
+			return httpErr
+		}
 	}
 
-	posts, hasMore := postsController.GetUserPosts(limit, userId, profileId, &cursor, p.DB)
+	posts, hasMore := postsController.GetUserPosts(limit, int(userId), profileId, &cursor, p.DB)
 	return c.JSON(200, models.PaginatedPosts{Posts: posts, HasMore: hasMore})
 }

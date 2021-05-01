@@ -202,7 +202,7 @@ func (p *PostsController) GetUserPosts(limit, userId, profileId int, cursor *str
 	}
 	limit++
 
-	if cursor != nil {
+	if *cursor != "" {
 		db.Raw(`
 			SELECT p.*,
 			( SELECT "value" from "likes" 
@@ -231,5 +231,5 @@ func (p *PostsController) GetUserPosts(limit, userId, profileId int, cursor *str
 		return posts[0 : limit-1], true
 	}
 
-	return posts[0 : len(posts)-1], false
+	return posts, false
 }
