@@ -21,7 +21,7 @@
 
   const handleLogout = () => {
     const out = logout();
-    out.then(() => $redirect("./index"));
+    out.then(() => $redirect("/index"));
   };
 
   if (isLoggedIn) {

@@ -41,7 +41,7 @@
         >
           <Icon path={mdiHeart}/>
         </Button>
-        <Button text class="pink-text" on:click={$redirect(`./post/${post.id}`)}>
+        <Button text class="pink-text" on:click={$redirect(`/post/${post.id}`)}>
           see More
         </Button>
       </CardActions>
