@@ -57,7 +57,7 @@
         fab
         size="small"
         class="ml-3 pink lighten-3"
-        on:click={$goto("/create-expense")}
+        on:click={$goto("/create-post")}
       >
         <Icon path={mdiPlusCircle} />
       </Button>

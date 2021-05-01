@@ -25,7 +25,7 @@
 
 <MaterialApp>
   <div class="d-flex justify-center mt-4 mb-4">
-    <Card style="width:800px;">
+    <Card raised style="width:800px;">
       <CardText>
         <div>{post.creator}</div>
         <div class="text--primary text-h4">{post.title}</div>

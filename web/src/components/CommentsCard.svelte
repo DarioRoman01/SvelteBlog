@@ -12,8 +12,8 @@
 </script>
 
 <MaterialApp>
-  <div class="d-flex justify-center mt-4 mb-4">
-    <Card style="max-width:800px;">
+  <div class="mt-4 mb-4">
+    <Card style="width:500px;">
       <CardText>
         <div>{comment.creator}</div>
         <div class="text--primary">
