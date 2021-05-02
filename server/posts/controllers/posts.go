@@ -233,3 +233,21 @@ func (p *PostsController) GetUserPosts(limit, userId, profileId int, cursor *str
 
 	return posts, false
 }
+
+func (p *PostsController) UpdatePost(postID int, userID uint, data models.Post, db *gorm.DB) (*models.Post, *echo.HTTPError) {
+	var post models.Post
+	db.Table("posts").Where("id = ?", postID).Find(&post)
+	if post.ID == 0 {
+		return nil, echo.NewHTTPError(404, "post not found")
+	}
+
+	if post.UserID != userID {
+		return nil, echo.NewHTTPError(403, "you are not allowed to perform this action")
+	}
+
+	if err := db.Model(&post).Updates(data).Error; err != nil {
+		return nil, echo.NewHTTPError(500, "unable to update post :(")
+	}
+
+	return &post, nil
+}
