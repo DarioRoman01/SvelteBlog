@@ -1,3 +1,5 @@
+import type { Profile } from "./profile";
+
 export interface Post {
   id: number;
   createdAt: string;
@@ -57,6 +59,44 @@ export const likePost = async (id: number, value: 0 | 1) => {
   if (!res.ok) {
     const err = await res.json();
     throw new Error(err);
+  }
+
+  return await res.json();
+}
+
+export const deletePost = async (id: number) => {
+  const res = await fetch(`${url}/posts/${id}`, {
+    method: "DELETE",
+    headers: headers,
+    credentials: "include"
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err);
+  }
+
+  return await res.json();
+}
+
+export const updatePost = async (
+  id: number,
+  title: string, 
+  body: string
+): Promise<Post> => {
+  const res = await fetch(`${url}/posts/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify({
+      title: title,
+      body: body
+    }),
+    headers: headers,
+    credentials: "include"
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err)
   }
 
   return await res.json();
