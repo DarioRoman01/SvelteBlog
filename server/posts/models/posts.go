@@ -13,7 +13,7 @@ type Post struct {
 	UpdatedAt  time.Time      `json:"updatedAt"`
 	DeletedAt  gorm.DeletedAt `json:"-" gorm:"index"`
 	UserID     uint           `json:"creatorId"`
-	StateValue uint16         `json:"stateValue" gorm:"-:migration"`
+	StateValue uint16         `json:"stateValue" gorm:"->"`
 	Title      string         `json:"title"`
 	Body       string         `json:"body"`
 	Likes      uint           `json:"likes" gorm:"default=0"`

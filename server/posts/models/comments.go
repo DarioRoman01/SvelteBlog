@@ -4,8 +4,9 @@ import "time"
 
 // Comment model
 type Comment struct {
+	ID        uint      `json:"id" gorm:"primaryKey"`
 	UserID    uint      `json:"creatorId"`
-	PostID    uint      `json:"postId" gorm:"primaryKey"`
+	PostID    uint      `json:"postId"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 	Body      string    `json:"body"`
