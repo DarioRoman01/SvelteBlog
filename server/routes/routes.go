@@ -57,6 +57,7 @@ func SetRoutes(e *echo.Echo) {
 	e.GET("/posts/:id", postsViews.GetPostView)
 	e.DELETE("/posts/:id", postsViews.DeletePostView)
 	e.POST("/posts/:id/like", postsViews.ToggleLikeView)
+	e.PATCH("/posts/:id", postsViews.UpdatePostView)
 	e.POST("/posts/:id/comments", commentViews.AddCommentView)
 	e.GET("/posts/:id/comments", commentViews.GetPostCommentsView)
 	e.DELETE("/posts/:id/comments", commentViews.DeleteCommentView)

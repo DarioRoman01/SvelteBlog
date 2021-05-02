@@ -133,3 +133,23 @@ func (p *PostsViews) GetUserPostsView(c echo.Context) error {
 	posts, hasMore := postsController.GetUserPosts(limit, int(userId), profileId, &cursor, p.DB)
 	return c.JSON(200, models.PaginatedPosts{Posts: posts, HasMore: hasMore})
 }
+
+func (p *PostsViews) UpdatePostView(c echo.Context) error {
+	var data models.Post
+	if err := c.Bind(&data); err != nil {
+		return utils.RequestBodyError
+	}
+
+	postId, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return utils.IdParamError
+	}
+
+	userId := c.Request().Context().Value("user").(uint)
+	post, httpErr := postsController.UpdatePost(postId, userId, data, p.DB)
+	if httpErr != nil {
+		return httpErr
+	}
+
+	return c.JSON(200, post)
+}
