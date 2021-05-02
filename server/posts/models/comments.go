@@ -4,12 +4,12 @@ import "time"
 
 // Comment model
 type Comment struct {
-	UserID    uint      `json:"creatorId" gorm:"primaryKey"`
+	UserID    uint      `json:"creatorId"`
 	PostID    uint      `json:"postId" gorm:"primaryKey"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 	Body      string    `json:"body"`
-	Creator   string    `json:"creator"`
+	Creator   string    `json:"creator" gorm:"->"`
 }
 
 // model for comments pagination
