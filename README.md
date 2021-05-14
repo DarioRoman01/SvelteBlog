@@ -23,3 +23,39 @@ This project can be considerer finished
 * Svelte
 * Routify
 * Svelte Materialify
+
+## Usage
+
+First clone the repo
+```
+$ git clone https://github.com/Haizza1/.Blog-v2.git
+```
+
+### Backend setup
+```
+$ cd server
+
+$ go mod download
+``` 
+
+before you start the server check the .env.example file and fill the all the fields
+
+you will notice this 
+```
+EMAIL_KEY=
+```
+if you want to try locally to register a user you will ned access to mailslurp api, but dont worry its free! check https://www.mailslurp.com/ then you have register and get the api key, then put that api key in the env variable
+
+then just run 
+```
+$ go run main.go
+```
+
+### Frontend setup
+```
+$ cd web
+
+$ yarn
+
+$ yarn dev
+```
