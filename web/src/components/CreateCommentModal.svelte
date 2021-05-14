@@ -42,8 +42,8 @@
             <Icon path={mdiClose} />
           </Button>
         </div>
-        <div color="pink lighten-3" style="width: 700px;" class="mb-4 mt-3">
-          <TextField bind:value={body} />
+        <div style="width: 700px;" class="mb-4 mt-3">
+          <TextField color="pink lighten-3" bind:value={body} />
         </div>
         <div style="align-self: center;" class="mt-4">
           <Button size="large" class="pink lighten-3" on:click={handleCreate}>

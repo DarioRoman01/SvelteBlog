@@ -1,4 +1,7 @@
-# .BLog-v2
+# SvelteBlog
+![](https://github.com/Haizza1/my_first_repo/blob/master/svelte.png)
+![](https://github.com/Haizza1/my_first_repo/blob/master/svelte2.png)
+![](https://github.com/Haizza1/my_first_repo/blob/master/svelte3.png)
 
 ## What is this?
 this can be call a personal project recreating a old project that i made in django,
