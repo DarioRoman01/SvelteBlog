@@ -31,7 +31,7 @@ This project can be considerer finished
 
 First clone the repo
 ```
-$ git clone https://github.com/Haizza1/.Blog-v2.git
+$ git clone https://github.com/Haizza1/SvelteBlog.git
 ```
 
 ### Backend setup
