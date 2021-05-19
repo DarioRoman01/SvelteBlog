@@ -50,7 +50,7 @@ func (u *UsersViews) SignupView(c echo.Context) error {
 		return httpErr
 	}
 
-	send := utils.SendEmail(userCreated, "verify")
+	send := utils.SendVerificationEmail(userCreated)
 	if !send {
 		return echo.NewHTTPError(500, "unable to send email")
 	}
@@ -165,7 +165,7 @@ func (u *UsersViews) ForgotPasswordView(c echo.Context) error {
 		return utils.InvalidInput("email", "email does not exist")
 	}
 
-	ok := utils.SendEmail(user, "change")
+	ok := utils.SendChangePasswordEmail(user)
 	if !ok {
 		return echo.NewHTTPError(500, "unable to send email")
 	}

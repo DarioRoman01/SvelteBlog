@@ -18,44 +18,18 @@ func init() {
 	}
 }
 
-// send email to user to change password or verify its account
-func SendEmail(user *models.User, emailType string) bool {
-	client, ctx := getMailSlurpClient()
-	inbox, _, _ := client.InboxControllerApi.CreateInbox(ctx, nil)
+func SendChangePasswordEmail(user *models.User) bool {
+	token, _ := GenerateToken(user.ID, "change_password")
+	body := fmt.Sprintf(`<a href="%s/change-password/%s">reset password</a>`, os.Getenv("CORS_ORIGIN"), token)
+	subject := "change password"
+	return sendEmail(token, body, subject)
+}
 
-	var body string
-	var subject string
-	var token string
-
-	if emailType == "change" {
-		token, _ = GenerateToken(user.ID, "change_password")
-		body = fmt.Sprintf(`<a href="%s/change-password/%s">reset password</a>`, os.Getenv("CORS_ORIGIN"), token)
-		subject = "change password"
-
-	} else if emailType == "verify" {
-		token, _ = GenerateToken(user.ID, "email_confirmation")
-		body = fmt.Sprintf(`<a href="%s/verify/%s">verify account</a>`, os.Getenv("CORS_ORIGIN"), token)
-		subject = "verify account"
-	}
-
-	sendEmailOptions := MailSlurpClient.SendEmailOptions{
-		To:      []string{inbox.EmailAddress},
-		Subject: subject,
-		Body:    body,
-		IsHTML:  true,
-	}
-
-	opts := &MailSlurpClient.SendEmailOpts{
-		SendEmailOptions: optional.NewInterface(sendEmailOptions),
-	}
-
-	res, err := client.InboxControllerApi.SendEmail(ctx, inbox.Id, opts)
-	if err != nil {
-		return false
-	}
-
-	fmt.Println(res.StatusCode)
-	return true
+func SendVerificationEmail(user *models.User) bool {
+	token, _ := GenerateToken(user.ID, "email_confirmation")
+	body := fmt.Sprintf(`<a href="%s/verify/%s">verify account</a>`, os.Getenv("CORS_ORIGIN"), token)
+	subject := "verify account"
+	return sendEmail(token, body, subject)
 }
 
 func getMailSlurpClient() (*MailSlurpClient.APIClient, context.Context) {
@@ -69,4 +43,24 @@ func getMailSlurpClient() (*MailSlurpClient.APIClient, context.Context) {
 	client := MailSlurpClient.NewAPIClient(config)
 
 	return client, ctx
+}
+
+func sendEmail(token, body, subject string) bool {
+	client, ctx := getMailSlurpClient()
+	inbox, _, _ := client.InboxControllerApi.CreateInbox(ctx, nil)
+
+	sendEmailOptions := MailSlurpClient.SendEmailOptions{
+		To:      []string{inbox.EmailAddress},
+		Subject: subject,
+		Body:    body,
+		IsHTML:  true,
+	}
+
+	opts := &MailSlurpClient.SendEmailOpts{
+		SendEmailOptions: optional.NewInterface(sendEmailOptions),
+	}
+
+	_, err := client.InboxControllerApi.SendEmail(ctx, inbox.Id, opts)
+
+	return err != nil
 }
