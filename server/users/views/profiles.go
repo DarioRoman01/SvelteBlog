@@ -3,6 +3,7 @@ package views
 import (
 	"blogv2/users/controllers"
 	"blogv2/users/models"
+	"blogv2/utils"
 	"strconv"
 
 	"github.com/labstack/echo/v4"
@@ -21,7 +22,7 @@ var profileController *controllers.ProfileController
 func (p *ProfileViews) CreateProfileView(c echo.Context) error {
 	var profile models.Profile
 	if err := c.Bind(&profile); err != nil {
-		return echo.NewHTTPError(423, "unable to parse request body")
+		return utils.RequestBodyError
 	}
 
 	userId := c.Request().Context().Value("user").(uint)
@@ -39,11 +40,11 @@ func (p *ProfileViews) UpdateProfileView(c echo.Context) error {
 	var profile models.Profile
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return echo.NewHTTPError(423, "invalid id")
+		return utils.IdParamError
 	}
 
 	if err = c.Bind(&profile); err != nil {
-		return echo.NewHTTPError(423, "unable to parse request body")
+		return utils.RequestBodyError
 	}
 
 	userId := c.Request().Context().Value("user").(uint)
@@ -60,7 +61,7 @@ func (p *ProfileViews) GetProfileView(c echo.Context) error {
 	username := c.ParamValues()[0]
 	profile := profileController.GetProfileByUsername(username, p.DB)
 	if profile == nil {
-		return echo.NewHTTPError(404, "unable to find that user")
+		return echo.NewHTTPError(404, "unable to find user")
 	}
 
 	currentUserId := c.Request().Context().Value("user").(uint)
@@ -75,7 +76,7 @@ func (p *ProfileViews) GetProfileView(c echo.Context) error {
 func (p *ProfileViews) FollowView(c echo.Context) error {
 	userToId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return echo.NewHTTPError(423, "invalid id")
+		return utils.IdParamError
 	}
 
 	userFromId := c.Request().Context().Value("user").(uint)

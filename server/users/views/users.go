@@ -33,12 +33,12 @@ func init() {
 func (u *UsersViews) SignupView(c echo.Context) error {
 	var userInput models.UserRegisterInput
 	if err := c.Bind(&userInput); err != nil {
-		return echo.NewHTTPError(423, "unable to parse request body")
+		return utils.RequestBodyError
 	}
 
-	isInvalid := utils.ValidateRegister(userInput)
-	if isInvalid != nil {
-		return c.JSON(isInvalid.Code, isInvalid.Message)
+	httpErr := utils.ValidateRegister(userInput)
+	if httpErr != nil {
+		return httpErr
 	}
 
 	userCreated, httpErr := usersController.CreateUser(&models.User{
@@ -63,7 +63,7 @@ func (u *UsersViews) LoginView(c echo.Context) error {
 	var userInput models.UserLoginInput
 
 	if err := c.Bind(&userInput); err != nil {
-		return echo.NewHTTPError(423, "unable to parse request body")
+		return utils.RequestBodyError
 	}
 
 	user, httpErr := usersController.LoginByEmail(&userInput, u.DB)
@@ -88,7 +88,7 @@ func (u *UsersViews) VerifyAccountView(c echo.Context) error {
 	var body map[string]string
 	err := (&echo.DefaultBinder{}).BindBody(c, &body)
 	if err != nil {
-		return echo.NewHTTPError(423, "unable to parse request body")
+		return utils.RequestBodyError
 	}
 
 	claims := jwt.MapClaims{}
@@ -96,7 +96,7 @@ func (u *UsersViews) VerifyAccountView(c echo.Context) error {
 		return []byte(os.Getenv("JWT-SECRET")), nil
 	})
 	if err != nil {
-		return echo.NewHTTPError(423, "invalid token")
+		return echo.NewHTTPError(400, "invalid token")
 	}
 
 	if claims["type"] != "email_confirmation" || !token.Valid {
@@ -133,7 +133,7 @@ func (u *UsersViews) ChangePasswordView(c echo.Context) error {
 		return []byte(os.Getenv("JWT-SECRET")), nil
 	})
 	if err != nil {
-		return echo.NewHTTPError(423, "invalid token")
+		return echo.NewHTTPError(400, "invalid token")
 	}
 
 	if claims["type"] != "verify" || !token.Valid {
@@ -157,7 +157,7 @@ func (u *UsersViews) ForgotPasswordView(c echo.Context) error {
 	var email map[string]string
 	err := (&echo.DefaultBinder{}).BindBody(c, &email)
 	if err != nil {
-		return echo.NewHTTPError(423, "unable to parse request body")
+		return utils.RequestBodyError
 	}
 
 	user := usersController.GetUserByEmail(email["email"], u.DB)
@@ -190,12 +190,12 @@ func (u *UsersViews) LogoutView(c echo.Context) error {
 func (u *UsersViews) UserFollowersViews(c echo.Context) error {
 	limit, err := strconv.Atoi(c.QueryParam("limit"))
 	if err != nil {
-		return echo.NewHTTPError(400, "invalid limit")
+		return utils.LimitError
 	}
 
 	userId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return echo.NewHTTPError(400, "invalid id")
+		return utils.IdParamError
 	}
 
 	cursor := c.QueryParam("cursor")

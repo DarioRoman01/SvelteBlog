@@ -37,6 +37,15 @@ func (p *ProfileController) UpdateProfile(userID uint, id uint, data *models.Pro
 		return nil, echo.NewHTTPError(403, "you do not have permissions to perform this action")
 	}
 
+	// only check for taken username username
+	// if username is updated
+	if storeProfile.Username != data.Username {
+		usernameTaken := p.GetProfileByUsername(data.Username, db)
+		if usernameTaken != nil {
+			return nil, echo.NewHTTPError(400, "username already taken")
+		}
+	}
+
 	if err := db.Model(&storeProfile).Updates(data).Error; err != nil {
 		return nil, echo.NewHTTPError(500, "unable to update expense")
 	}
