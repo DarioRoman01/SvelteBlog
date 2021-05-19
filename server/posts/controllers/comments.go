@@ -20,14 +20,14 @@ func (c *CommentsController) AddComment(comment *models.Comment, db *gorm.DB) *e
 }
 
 // retrieve all posts comments and paginate them
-func (c *CommentsController) GetPostComments(postId, limit int, cursor *string, db *gorm.DB) ([]models.Comment, bool) {
+func (c *CommentsController) GetPostComments(postId, limit int, cursor string, db *gorm.DB) ([]models.Comment, bool) {
 	var comments []models.Comment
 	if limit > 50 {
 		limit = 50
 	}
 	limit++
 
-	if *cursor != "" {
+	if cursor != "" {
 		db.Raw(`
 			SELECT c.*,
 			(SELECT username FROM "profiles"

@@ -60,10 +60,10 @@ func (u *UsersController) LoginByEmail(input *models.UserLoginInput, db *gorm.DB
 }
 
 // retrieve all users followers and paginate them
-func (u *UsersController) GetUserFollowers(userId, limit int, cursor *string, db *gorm.DB) ([]models.User, bool) {
+func (u *UsersController) GetUserFollowers(userId, limit int, cursor string, db *gorm.DB) ([]models.User, bool) {
 	var users []models.User
 
-	if cursor != nil {
+	if cursor != "" {
 		db.Raw(`
 			SELECT u.*,
 			FROM "users"

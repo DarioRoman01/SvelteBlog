@@ -81,7 +81,7 @@ func (p *PostsViews) GetPostsView(c echo.Context) error {
 	}
 
 	userId := c.Request().Context().Value("user").(uint)
-	posts, hasMore := postsController.GetPosts(limit, &cursor, int(userId), p.DB)
+	posts, hasMore := postsController.GetPosts(limit, cursor, int(userId), p.DB)
 
 	return c.JSON(200, models.PaginatedPosts{Posts: posts, HasMore: hasMore})
 }
@@ -130,7 +130,7 @@ func (p *PostsViews) GetUserPostsView(c echo.Context) error {
 		}
 	}
 
-	posts, hasMore := postsController.GetUserPosts(limit, int(userId), profileId, &cursor, p.DB)
+	posts, hasMore := postsController.GetUserPosts(limit, int(userId), profileId, cursor, p.DB)
 	return c.JSON(200, models.PaginatedPosts{Posts: posts, HasMore: hasMore})
 }
 

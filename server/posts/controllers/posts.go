@@ -94,14 +94,14 @@ func (p *PostsController) DeletePost(id int, userID int, db *gorm.DB) *echo.HTTP
 }
 
 // retrieve all post and paginate them
-func (p *PostsController) GetPosts(limit int, cursor *string, userId int, db *gorm.DB) ([]models.Post, bool) {
+func (p *PostsController) GetPosts(limit int, cursor string, userId int, db *gorm.DB) ([]models.Post, bool) {
 	var posts []models.Post
 	if limit > 50 {
 		limit = 50
 	}
 	limit++
 
-	if *cursor != "" {
+	if cursor != "" {
 		db.Raw(`
 			SELECT p.*,
 			(SELECT "value" from "likes" 
@@ -194,7 +194,7 @@ func (p *PostsController) SetLike(postId, userId, value int, db *gorm.DB) bool {
 }
 
 // retrieve the posts of the given user paginated
-func (p *PostsController) GetUserPosts(limit, userId, profileId int, cursor *string, db *gorm.DB) ([]models.Post, bool) {
+func (p *PostsController) GetUserPosts(limit, userId, profileId int, cursor string, db *gorm.DB) ([]models.Post, bool) {
 	var posts []models.Post
 
 	if limit > 50 {
@@ -202,7 +202,7 @@ func (p *PostsController) GetUserPosts(limit, userId, profileId int, cursor *str
 	}
 	limit++
 
-	if *cursor != "" {
+	if cursor != "" {
 		db.Raw(`
 			SELECT p.*,
 			( SELECT "value" from "likes" 

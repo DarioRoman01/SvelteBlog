@@ -204,6 +204,6 @@ func (u *UsersViews) UserFollowersViews(c echo.Context) error {
 		return httpErr
 	}
 
-	users, hasMore := usersController.GetUserFollowers(userId, limit, &cursor, u.DB)
+	users, hasMore := usersController.GetUserFollowers(userId, limit, cursor, u.DB)
 	return c.JSON(200, models.PaginatedUsers{Users: users, HasMore: hasMore})
 }

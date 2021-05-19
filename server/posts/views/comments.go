@@ -61,7 +61,7 @@ func (cv *CommentsViews) GetPostCommentsView(c echo.Context) error {
 		return utils.LimitError
 	}
 
-	comments, hasMore := commentsController.GetPostComments(postId, limit, &cursor, cv.DB)
+	comments, hasMore := commentsController.GetPostComments(postId, limit, cursor, cv.DB)
 	return c.JSON(200, models.PaginatedComments{
 		Comments: comments,
 		HasMore:  hasMore,
