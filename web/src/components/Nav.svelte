@@ -2,12 +2,7 @@
   import { goto, redirect, url } from "@roxi/routify";
   import { logout, api } from "../requests/users";
   import type { Profile } from "../requests/profile";
-  import {
-    AppBar,
-    Button,
-    Icon,
-    MaterialApp,
-  } from "svelte-materialify";
+  import { AppBar, Button, Icon, MaterialApp } from "svelte-materialify";
   import {
     mdiPlusCircle,
     mdiArrowRightCircle,

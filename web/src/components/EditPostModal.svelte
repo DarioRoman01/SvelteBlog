@@ -4,7 +4,7 @@
     TextField,
     Button,
     Icon,
-    Alert
+    Alert,
   } from "svelte-materialify";
   import { createEventDispatcher } from "svelte";
   import type { Post } from "../requests/posts";
@@ -21,7 +21,7 @@
     update
       .then((post) => dispatch("update", { post: post }))
       .catch((err) => {
-        error = err
+        error = err;
       });
   };
 
@@ -41,16 +41,10 @@
           </Button>
         </div>
         <div color="pink lighten-3" style="width: 700px;" class="mb-4 mt-3">
-          <TextField 
-            bind:value={post.title}
-            color="pink lighten-3" 
-          />
+          <TextField bind:value={post.title} color="pink lighten-3" />
         </div>
         <div style="width: 700px;">
-          <TextField 
-            color="pink lighten-3"
-            bind:value={post.body} 
-          />
+          <TextField color="pink lighten-3" bind:value={post.body} />
         </div>
         <div style="align-self: center;" class="mt-4">
           <Button size="large" class="pink lighten-3" on:click={handleUpdate}>
@@ -58,14 +52,14 @@
           </Button>
         </div>
         {#if error}
-        <Alert
-          class="pink accent-3 mt-4"
-          dismissible={true}
-          bind:visible={show}
-        >
-          {error.message}
-        </Alert>
-      {/if}
+          <Alert
+            class="pink accent-3 mt-4"
+            dismissible={true}
+            bind:visible={show}
+          >
+            {error.message}
+          </Alert>
+        {/if}
       </div>
     </div>
   </div>

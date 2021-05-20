@@ -133,6 +133,11 @@ func (u *UsersViews) ChangePasswordView(c echo.Context) error {
 		return utils.RequestBodyError
 	}
 
+	_, exists := body["token"]
+	if !exists {
+		return utils.InvalidInput("token", "token field is required")
+	}
+
 	claims := jwt.MapClaims{}
 	token, err := jwt.ParseWithClaims(body["token"], claims, func(t *jwt.Token) (interface{}, error) {
 		return []byte(os.Getenv("JWT-SECRET")), nil

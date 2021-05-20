@@ -17,10 +17,10 @@
 
   const handleLike = () => {
     let value: 0 | 1;
-    stateValue === 1 ? value = 0 : value = 1;
+    stateValue === 1 ? (value = 0) : (value = 1);
     const like = likePost(post.id, value);
-    like.then(() => stateValue = value);
-  }
+    like.then(() => (stateValue = value));
+  };
 </script>
 
 <MaterialApp>
@@ -34,12 +34,12 @@
         </div>
       </CardText>
       <CardActions>
-        <Button 
-          icon 
+        <Button
+          icon
           class={stateValue === 1 ? "pink-text" : "grey-text"}
           on:click={handleLike}
         >
-          <Icon path={mdiHeart}/>
+          <Icon path={mdiHeart} />
         </Button>
         <Button text class="pink-text" on:click={$redirect(`/post/${post.id}`)}>
           see More

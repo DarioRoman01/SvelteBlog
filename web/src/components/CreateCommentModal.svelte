@@ -4,7 +4,7 @@
     TextField,
     Button,
     Icon,
-    Alert
+    Alert,
   } from "svelte-materialify";
   import { createEventDispatcher } from "svelte";
   import { addComment } from "../requests/comments";
@@ -15,17 +15,17 @@
   let body: string;
   let error: Error;
   export let postId: number;
-  let show: boolean
+  let show: boolean;
 
   const handleCreate = () => {
     const newComment = addComment(postId, body);
     newComment
       .then(() => dispatch("create"))
       .catch((err) => {
-        error = err
-        show = true
+        error = err;
+        show = true;
       });
-  }
+  };
 
   const handleClose = () => {
     dispatch("close");
@@ -51,14 +51,14 @@
           </Button>
         </div>
         {#if error}
-        <Alert
-          class="pink accent-3 mt-4"
-          dismissible={true}
-          bind:visible={show}
-        >
-          {error.message}
-        </Alert>
-      {/if}
+          <Alert
+            class="pink accent-3 mt-4"
+            dismissible={true}
+            bind:visible={show}
+          >
+            {error.message}
+          </Alert>
+        {/if}
       </div>
     </div>
   </div>

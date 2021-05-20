@@ -9,7 +9,7 @@
   } from "svelte-materialify";
   import type { Comment } from "../requests/comments"
   import { mdiTrashCan } from "@mdi/js"
-import { createEventDispatcher } from "svelte";
+  import { createEventDispatcher } from "svelte";
 
   export let comment: Comment;
   export let currentUserId: number;
