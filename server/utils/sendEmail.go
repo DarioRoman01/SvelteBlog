@@ -19,14 +19,14 @@ func init() {
 }
 
 func SendChangePasswordEmail(user *models.User) bool {
-	token, _ := GenerateToken(user.ID, "change_password")
+	token, _ := GenerateToken(user.ID, CHANGE)
 	body := fmt.Sprintf(`<a href="%s/change-password/%s">reset password</a>`, os.Getenv("CORS_ORIGIN"), token)
 	subject := "change password"
 	return sendEmail(token, body, subject)
 }
 
 func SendVerificationEmail(user *models.User) bool {
-	token, _ := GenerateToken(user.ID, "email_confirmation")
+	token, _ := GenerateToken(user.ID, VERIFY)
 	body := fmt.Sprintf(`<a href="%s/verify/%s">verify account</a>`, os.Getenv("CORS_ORIGIN"), token)
 	subject := "verify account"
 	return sendEmail(token, body, subject)

@@ -71,7 +71,7 @@ func (u *UsersViews) LoginView(c echo.Context) error {
 		return httpErr
 	}
 
-	token, httpErr := utils.GenerateToken(user.ID, "session")
+	token, httpErr := utils.GenerateToken(user.ID, utils.SESSION)
 	if httpErr != nil {
 		return httpErr
 	}
@@ -91,6 +91,11 @@ func (u *UsersViews) VerifyAccountView(c echo.Context) error {
 		return utils.RequestBodyError
 	}
 
+	_, exists := body["token"]
+	if !exists {
+		return utils.InvalidInput("token", "token field is required")
+	}
+
 	claims := jwt.MapClaims{}
 	token, err := jwt.ParseWithClaims(body["token"], claims, func(t *jwt.Token) (interface{}, error) {
 		return []byte(os.Getenv("JWT-SECRET")), nil
@@ -99,7 +104,7 @@ func (u *UsersViews) VerifyAccountView(c echo.Context) error {
 		return echo.NewHTTPError(400, "invalid token")
 	}
 
-	if claims["type"] != "email_confirmation" || !token.Valid {
+	if claims["type"] != utils.VERIFY || !token.Valid {
 		return echo.NewHTTPError(400, "invalid token")
 	}
 
@@ -108,7 +113,7 @@ func (u *UsersViews) VerifyAccountView(c echo.Context) error {
 		return echo.NewHTTPError(500, "unable to update user status")
 	}
 
-	sessionToken, httpErr := utils.GenerateToken(uint(claims["user_id"].(float64)), "session")
+	sessionToken, httpErr := utils.GenerateToken(uint(claims["user_id"].(float64)), utils.SESSION)
 	if httpErr != nil {
 		return httpErr
 	}
@@ -136,7 +141,7 @@ func (u *UsersViews) ChangePasswordView(c echo.Context) error {
 		return echo.NewHTTPError(400, "invalid token")
 	}
 
-	if claims["type"] != "verify" || !token.Valid {
+	if claims["type"] != utils.CHANGE || !token.Valid {
 		return echo.NewHTTPError(400, "invalid token")
 
 	} else if len(body["newPassword"]) < 8 {

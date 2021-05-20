@@ -47,7 +47,7 @@ func IsAuth(next echo.HandlerFunc) echo.HandlerFunc {
 			return echo.NewHTTPError(423, "invalid token")
 		}
 
-		if claims["type"] != "session" || !token.Valid {
+		if claims["type"] != utils.SESSION || !token.Valid {
 			return echo.NewHTTPError(400, "invalid token")
 		}
 
