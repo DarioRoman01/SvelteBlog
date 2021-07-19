@@ -7,15 +7,16 @@ import (
 	"strconv"
 
 	"github.com/labstack/echo/v4"
-	"gorm.io/gorm"
 )
 
 // group all requests related to posts
 type PostsViews struct {
-	DB *gorm.DB
+	controller *controllers.PostsController
 }
 
-var postsController *controllers.PostsController
+func NewPostsViews(controller *controllers.PostsController) *PostsViews {
+	return &PostsViews{controller}
+}
 
 // handle create post request
 func (p *PostsViews) CreatePostView(c echo.Context) error {
@@ -26,7 +27,7 @@ func (p *PostsViews) CreatePostView(c echo.Context) error {
 
 	userId := c.Request().Context().Value("user").(uint)
 	post.UserID = userId
-	httpErr := postsController.CreatePost(&post, p.DB)
+	httpErr := p.controller.CreatePost(&post)
 	if httpErr != nil {
 		return httpErr
 	}
@@ -41,7 +42,7 @@ func (p *PostsViews) GetPostView(c echo.Context) error {
 		return echo.NewHTTPError(423, "invalid id")
 	}
 	userId := c.Request().Context().Value("user").(uint)
-	post, httpErr := postsController.GetPost(id, userId, p.DB)
+	post, httpErr := p.controller.GetPost(id, userId)
 	if httpErr != nil {
 		return httpErr
 	}
@@ -57,7 +58,7 @@ func (p *PostsViews) DeletePostView(c echo.Context) error {
 	}
 
 	userId := c.Request().Context().Value("user").(uint)
-	httpErr := postsController.DeletePost(id, int(userId), p.DB)
+	httpErr := p.controller.DeletePost(id, int(userId))
 	if httpErr != nil {
 		return httpErr
 	}
@@ -81,8 +82,7 @@ func (p *PostsViews) GetPostsView(c echo.Context) error {
 	}
 
 	userId := c.Request().Context().Value("user").(uint)
-	posts, hasMore := postsController.GetPosts(limit, cursor, int(userId), p.DB)
-
+	posts, hasMore := p.controller.GetPosts(limit, cursor, int(userId))
 	return c.JSON(200, models.PaginatedPosts{Posts: posts, HasMore: hasMore})
 }
 
@@ -100,7 +100,7 @@ func (p *PostsViews) ToggleLikeView(c echo.Context) error {
 	}
 
 	userId := c.Request().Context().Value("user").(uint)
-	likedOrDisliked := postsController.SetLike(postId, int(userId), body["value"], p.DB)
+	likedOrDisliked := p.controller.SetLike(postId, int(userId), body["value"])
 
 	if !likedOrDisliked {
 		return echo.NewHTTPError(500, "unable to set like")
@@ -130,7 +130,7 @@ func (p *PostsViews) GetUserPostsView(c echo.Context) error {
 		}
 	}
 
-	posts, hasMore := postsController.GetUserPosts(limit, int(userId), profileId, cursor, p.DB)
+	posts, hasMore := p.controller.GetUserPosts(limit, int(userId), profileId, cursor)
 	return c.JSON(200, models.PaginatedPosts{Posts: posts, HasMore: hasMore})
 }
 
@@ -146,10 +146,77 @@ func (p *PostsViews) UpdatePostView(c echo.Context) error {
 	}
 
 	userId := c.Request().Context().Value("user").(uint)
-	post, httpErr := postsController.UpdatePost(postId, userId, data, p.DB)
+	post, httpErr := p.controller.UpdatePost(postId, userId, data)
 	if httpErr != nil {
 		return httpErr
 	}
 
 	return c.JSON(200, post)
+}
+
+// handle comments creatoin request and validate param
+func (p *PostsViews) AddCommentView(c echo.Context) error {
+	var comment models.Comment
+	if err := c.Bind(&comment); err != nil {
+		return utils.RequestBodyError
+	}
+
+	postId, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return utils.IdParamError
+	}
+
+	userId := c.Request().Context().Value("user").(uint)
+	comment.PostID = uint(postId)
+	comment.UserID = userId
+
+	httpErr := p.controller.AddComment(&comment)
+	if httpErr != nil {
+		return httpErr
+	}
+
+	return c.JSON(201, comment)
+}
+
+// retrieve comments by post id and validate all url params
+func (p *PostsViews) GetPostCommentsView(c echo.Context) error {
+	postId, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return utils.IdParamError
+	}
+
+	cursor := c.QueryParam("cursor")
+	if cursor != "" {
+		httpErr := utils.ValidateCursor(cursor)
+		if httpErr != nil {
+			return httpErr
+		}
+	}
+
+	limit, err := strconv.Atoi(c.QueryParam("limit"))
+	if err != nil {
+		return utils.LimitError
+	}
+
+	comments, hasMore := p.controller.GetPostComments(postId, limit, cursor)
+	return c.JSON(200, models.PaginatedComments{
+		Comments: comments,
+		HasMore:  hasMore,
+	})
+}
+
+// handle delete comment request
+func (p *PostsViews) DeleteCommentView(c echo.Context) error {
+	commentId, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return utils.IdParamError
+	}
+
+	userId := c.Request().Context().Value("user").(int)
+	httpErr := p.controller.DeleteComment(commentId, userId)
+	if httpErr != nil {
+		return httpErr
+	}
+
+	return c.JSON(200, "successfully deleted")
 }
