@@ -5,7 +5,6 @@ import (
 	"blogv2/users/models"
 	"blogv2/utils"
 	"log"
-	"os"
 	"strconv"
 
 	"github.com/dgrijalva/jwt-go"
@@ -97,9 +96,7 @@ func (u *UsersViews) VerifyAccountView(c echo.Context) error {
 	}
 
 	claims := jwt.MapClaims{}
-	token, err := jwt.ParseWithClaims(body["token"], claims, func(t *jwt.Token) (interface{}, error) {
-		return []byte(os.Getenv("JWT-SECRET")), nil
-	})
+	token, err := jwt.ParseWithClaims(body["token"], claims, utils.ParseToken)
 	if err != nil {
 		return echo.NewHTTPError(400, "invalid token")
 	}
@@ -138,9 +135,7 @@ func (u *UsersViews) ChangePasswordView(c echo.Context) error {
 	}
 
 	claims := jwt.MapClaims{}
-	token, err := jwt.ParseWithClaims(body["token"], claims, func(t *jwt.Token) (interface{}, error) {
-		return []byte(os.Getenv("JWT-SECRET")), nil
-	})
+	token, err := jwt.ParseWithClaims(body["token"], claims, utils.ParseToken)
 
 	if err != nil {
 		return echo.NewHTTPError(400, "invalid token")

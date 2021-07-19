@@ -39,9 +39,7 @@ func IsAuth(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 
 		claims := jwt.MapClaims{}
-		token, err := jwt.ParseWithClaims(strToken, claims, func(t *jwt.Token) (interface{}, error) {
-			return []byte(os.Getenv("JWT-SECRET")), nil
-		})
+		token, err := jwt.ParseWithClaims(strToken, claims, utils.ParseToken)
 
 		if err != nil {
 			return echo.NewHTTPError(423, "invalid token")

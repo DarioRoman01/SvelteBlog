@@ -58,6 +58,10 @@ func CheckToken(c echo.Context) (string, error) {
 	return strToken.(string), nil
 }
 
+func ParseToken(t *jwt.Token) (interface{}, error) {
+	return []byte(os.Getenv("JWT-SECRET")), nil
+}
+
 // generates new jwt token with the user id and token type
 // there is only tree types "change-password",
 // "verify", and "session"
