@@ -9,11 +9,13 @@ import (
 )
 
 // group all posts related functions in the db
-type PostsController struct{}
+type PostsController struct {
+	db *gorm.DB
+}
 
 // store the post in the db and update profile posted counter with transaction
-func (p *PostsController) CreatePost(post *models.Post, db *gorm.DB) *echo.HTTPError {
-	tx := db.Begin()
+func (p *PostsController) CreatePost(post *models.Post) *echo.HTTPError {
+	tx := p.db.Begin()
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
@@ -42,9 +44,9 @@ func (p *PostsController) CreatePost(post *models.Post, db *gorm.DB) *echo.HTTPE
 }
 
 // retrieve post by id
-func (p *PostsController) GetPost(id int, userId uint, db *gorm.DB) (*models.Post, *echo.HTTPError) {
+func (p *PostsController) GetPost(id int, userId uint) (*models.Post, *echo.HTTPError) {
 	var post models.Post
-	db.Raw(`
+	p.db.Raw(`
 		SELECT p.*,
 		(SELECT "value" from "likes" 
 		WHERE "user_id" = ? and "post_id" = p.id) as "StateValue",
@@ -61,9 +63,9 @@ func (p *PostsController) GetPost(id int, userId uint, db *gorm.DB) (*models.Pos
 	return &post, nil
 }
 
-// delete post from the db
-func (p *PostsController) DeletePost(id int, userID int, db *gorm.DB) *echo.HTTPError {
-	tx := db.Begin()
+// delete post from the db with a transaction to handle user published posts count
+func (p *PostsController) DeletePost(id int, userID int) *echo.HTTPError {
+	tx := p.db.Begin()
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
@@ -94,7 +96,7 @@ func (p *PostsController) DeletePost(id int, userID int, db *gorm.DB) *echo.HTTP
 }
 
 // retrieve all post and paginate them
-func (p *PostsController) GetPosts(limit int, cursor string, userId int, db *gorm.DB) ([]models.Post, bool) {
+func (p *PostsController) GetPosts(limit int, cursor string, userId int) ([]models.Post, bool) {
 	var posts []models.Post
 	if limit > 50 {
 		limit = 50
@@ -102,7 +104,7 @@ func (p *PostsController) GetPosts(limit int, cursor string, userId int, db *gor
 	limit++
 
 	if cursor != "" {
-		db.Raw(`
+		p.db.Raw(`
 			SELECT p.*,
 			(SELECT "value" from "likes" 
 			WHERE "user_id" = ? and "post_id" = p.id) as "StateValue",
@@ -114,7 +116,7 @@ func (p *PostsController) GetPosts(limit int, cursor string, userId int, db *gor
 			LIMIT ?
 		`, userId, cursor, limit).Find(&posts)
 	} else {
-		db.Raw(`
+		p.db.Raw(`
 			SELECT p.*,
 			( SELECT "value" from "likes" 
 			WHERE "user_id" = ? and "post_id" = p.id) as "StateValue",
@@ -136,7 +138,7 @@ func (p *PostsController) GetPosts(limit int, cursor string, userId int, db *gor
 }
 
 // set user like or quit their like depending if he liked the post before
-func (p *PostsController) SetLike(postId, userId, value int, db *gorm.DB) bool {
+func (p *PostsController) SetLike(postId, userId, value int) bool {
 	var like models.Like
 	isLike := value != -1
 	var realValue uint16
@@ -147,7 +149,7 @@ func (p *PostsController) SetLike(postId, userId, value int, db *gorm.DB) bool {
 		realValue = 0
 	}
 
-	db.Table("likes").Where("user_id = ? and post_id = ?", userId, postId).Find(&like)
+	p.db.Table("likes").Where("user_id = ? and post_id = ?", userId, postId).Find(&like)
 
 	// user is liked the post before and
 	// they are changing their like
@@ -166,7 +168,7 @@ func (p *PostsController) SetLike(postId, userId, value int, db *gorm.DB) bool {
 			COMMIT;
 		`, realValue, postId, userId, postId)
 
-		if err := db.Exec(query).Error; err != nil {
+		if err := p.db.Exec(query).Error; err != nil {
 			return false
 		}
 
@@ -185,7 +187,7 @@ func (p *PostsController) SetLike(postId, userId, value int, db *gorm.DB) bool {
 			COMMIT;
 		`, userId, postId, realValue, realValue, postId)
 
-		if err := db.Exec(query).Error; err != nil {
+		if err := p.db.Exec(query).Error; err != nil {
 			return false
 		}
 	}
@@ -194,7 +196,7 @@ func (p *PostsController) SetLike(postId, userId, value int, db *gorm.DB) bool {
 }
 
 // retrieve the posts of the given user paginated
-func (p *PostsController) GetUserPosts(limit, userId, profileId int, cursor string, db *gorm.DB) ([]models.Post, bool) {
+func (p *PostsController) GetUserPosts(limit, userId, profileId int, cursor string) ([]models.Post, bool) {
 	var posts []models.Post
 
 	if limit > 50 {
@@ -203,7 +205,7 @@ func (p *PostsController) GetUserPosts(limit, userId, profileId int, cursor stri
 	limit++
 
 	if cursor != "" {
-		db.Raw(`
+		p.db.Raw(`
 			SELECT p.*,
 			( SELECT "value" from "likes" 
 			WHERE "user_id" = ? and "post_id" = p.id) as "StateValue"
@@ -214,7 +216,7 @@ func (p *PostsController) GetUserPosts(limit, userId, profileId int, cursor stri
 			LIMIT ?
 		`, userId, profileId, cursor, limit).Find(&posts)
 	} else {
-		db.Raw(`
+		p.db.Raw(`
 			SELECT p.*,
 			( SELECT "value" from "likes" 
 			WHERE "user_id" = ? and "post_id" = p.id) as "StateValue"
@@ -234,9 +236,9 @@ func (p *PostsController) GetUserPosts(limit, userId, profileId int, cursor stri
 	return posts, false
 }
 
-func (p *PostsController) UpdatePost(postID int, userID uint, data models.Post, db *gorm.DB) (*models.Post, *echo.HTTPError) {
+func (p *PostsController) UpdatePost(postID int, userID uint, data models.Post) (*models.Post, *echo.HTTPError) {
 	var post models.Post
-	db.Table("posts").Where("id = ?", postID).Find(&post)
+	p.db.Table("posts").Where("id = ?", postID).Find(&post)
 	if post.ID == 0 {
 		return nil, echo.NewHTTPError(404, "post not found")
 	}
@@ -245,7 +247,7 @@ func (p *PostsController) UpdatePost(postID int, userID uint, data models.Post, 
 		return nil, echo.NewHTTPError(403, "you are not allowed to perform this action")
 	}
 
-	if err := db.Model(&post).Updates(data).Error; err != nil {
+	if err := p.db.Model(&post).Updates(data).Error; err != nil {
 		return nil, echo.NewHTTPError(500, "unable to update post :(")
 	}
 

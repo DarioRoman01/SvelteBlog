@@ -8,11 +8,13 @@ import (
 )
 
 // group all functions related on comments on the db
-type CommentsController struct{}
+type CommentsController struct {
+	db *gorm.DB
+}
 
 // create comment in the db
-func (c *CommentsController) AddComment(comment *models.Comment, db *gorm.DB) *echo.HTTPError {
-	if err := db.Table("comments").Create(&comment).Error; err != nil {
+func (c *CommentsController) AddComment(comment *models.Comment) *echo.HTTPError {
+	if err := c.db.Table("comments").Create(&comment).Error; err != nil {
 		return echo.NewHTTPError(500, "unable to create post")
 	}
 
@@ -20,7 +22,7 @@ func (c *CommentsController) AddComment(comment *models.Comment, db *gorm.DB) *e
 }
 
 // retrieve all posts comments and paginate them
-func (c *CommentsController) GetPostComments(postId, limit int, cursor string, db *gorm.DB) ([]models.Comment, bool) {
+func (c *CommentsController) GetPostComments(postId, limit int, cursor string) ([]models.Comment, bool) {
 	var comments []models.Comment
 	if limit > 50 {
 		limit = 50
@@ -28,7 +30,7 @@ func (c *CommentsController) GetPostComments(postId, limit int, cursor string, d
 	limit++
 
 	if cursor != "" {
-		db.Raw(`
+		c.db.Raw(`
 			SELECT c.*,
 			(SELECT username FROM "profiles"
 			WHERE user_id = c.user_id) as "Creator"
@@ -39,7 +41,7 @@ func (c *CommentsController) GetPostComments(postId, limit int, cursor string, d
 			LIMIT ?
 		`, postId, cursor, limit).Find(&comments)
 	} else {
-		db.Raw(`
+		c.db.Raw(`
 			SELECT c.*,
 			(SELECT username FROM "profiles"
 			WHERE user_id = c.user_id) as "Creator"
@@ -61,8 +63,8 @@ func (c *CommentsController) GetPostComments(postId, limit int, cursor string, d
 }
 
 // delete comment from the db
-func (c *CommentsController) DeleteComment(id, userId int, db *gorm.DB) *echo.HTTPError {
-	tx := db.Where("id = ? AND user_id = ?", id, userId).Delete(&models.Comment{})
+func (c *CommentsController) DeleteComment(id, userId int) *echo.HTTPError {
+	tx := c.db.Where("id = ? AND user_id = ?", id, userId).Delete(&models.Comment{})
 	if tx.RowsAffected == 0 || tx.Error != nil {
 		return echo.NewHTTPError(400, "post does not exists or you are not the owner")
 	}
