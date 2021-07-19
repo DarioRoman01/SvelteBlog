@@ -11,16 +11,16 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
-	"gorm.io/gorm"
 )
 
 // gruops all users views
 type UsersViews struct {
-	DB *gorm.DB
+	controller *controllers.UsersController
 }
 
-// shortcut for not writing controllers.UsersControllers
-var usersController *controllers.UsersController
+func NewUsersViews(controller *controllers.UsersController) *UsersViews {
+	return &UsersViews{controller}
+}
 
 // read env to let all functions get .env variables
 func init() {
@@ -41,21 +41,23 @@ func (u *UsersViews) SignupView(c echo.Context) error {
 		return httpErr
 	}
 
-	userCreated, httpErr := usersController.CreateUser(&models.User{
+	user := &models.User{
 		Email:       userInput.Email,
 		PhoneNumber: userInput.PhoneNumber,
 		Password:    userInput.Password,
-	}, u.DB)
+	}
+
+	httpErr = u.controller.CreateUser(user)
 	if httpErr != nil {
 		return httpErr
 	}
 
-	send := utils.SendVerificationEmail(userCreated)
+	send := utils.SendVerificationEmail(user)
 	if !send {
 		return echo.NewHTTPError(500, "unable to send email")
 	}
 
-	return c.JSON(201, userCreated)
+	return c.JSON(201, user)
 }
 
 // hande login requests and generate a session for the user with jwt token
@@ -66,7 +68,7 @@ func (u *UsersViews) LoginView(c echo.Context) error {
 		return utils.RequestBodyError
 	}
 
-	user, httpErr := usersController.LoginByEmail(&userInput, u.DB)
+	user, httpErr := u.controller.LoginByEmail(&userInput)
 	if httpErr != nil {
 		return httpErr
 	}
@@ -107,13 +109,13 @@ func (u *UsersViews) VerifyAccountView(c echo.Context) error {
 	if claims["type"] != utils.VERIFY || !token.Valid {
 		return echo.NewHTTPError(400, "invalid token")
 	}
-
-	err = u.DB.Table("users").Where("id = ?", int(claims["user_id"].(float64))).Update("is_verified", true).Error
+	id := int(claims["user_id"].(float64))
+	err = u.controller.UpdateUserStatus(id)
 	if err != nil {
 		return echo.NewHTTPError(500, "unable to update user status")
 	}
 
-	sessionToken, httpErr := utils.GenerateToken(uint(claims["user_id"].(float64)), utils.SESSION)
+	sessionToken, httpErr := utils.GenerateToken(uint(id), utils.SESSION)
 	if httpErr != nil {
 		return httpErr
 	}
@@ -142,6 +144,7 @@ func (u *UsersViews) ChangePasswordView(c echo.Context) error {
 	token, err := jwt.ParseWithClaims(body["token"], claims, func(t *jwt.Token) (interface{}, error) {
 		return []byte(os.Getenv("JWT-SECRET")), nil
 	})
+
 	if err != nil {
 		return echo.NewHTTPError(400, "invalid token")
 	}
@@ -153,7 +156,7 @@ func (u *UsersViews) ChangePasswordView(c echo.Context) error {
 		return echo.NewHTTPError(400, "password must be at least 8 characters")
 	}
 
-	user, httpErr := usersController.ChangePassword(claims["user_id"].(string), body["newPassword"], u.DB)
+	user, httpErr := u.controller.ChangePassword(claims["user_id"].(string), body["newPassword"])
 	if httpErr != nil {
 		return httpErr
 	}
@@ -170,7 +173,7 @@ func (u *UsersViews) ForgotPasswordView(c echo.Context) error {
 		return utils.RequestBodyError
 	}
 
-	user := usersController.GetUserByEmail(email["email"], u.DB)
+	user := u.controller.GetUserByEmail(email["email"])
 	if user == nil {
 		return utils.InvalidInput("email", "email does not exist")
 	}
@@ -214,6 +217,85 @@ func (u *UsersViews) UserFollowersViews(c echo.Context) error {
 		return httpErr
 	}
 
-	users, hasMore := usersController.GetUserFollowers(userId, limit, cursor, u.DB)
+	users, hasMore := u.controller.GetUserFollowers(userId, limit, cursor)
 	return c.JSON(200, models.PaginatedUsers{Users: users, HasMore: hasMore})
+}
+
+func (u *UsersViews) CreateProfileView(c echo.Context) error {
+	var profile models.Profile
+	if err := c.Bind(&profile); err != nil {
+		return utils.RequestBodyError
+	}
+
+	userId := c.Request().Context().Value("user").(uint)
+	profile.UserID = userId
+	httpErr := u.controller.CreateProfile(&profile)
+	if httpErr != nil {
+		return httpErr
+	}
+
+	return c.JSON(201, profile)
+}
+
+// handle profile updates
+func (u *UsersViews) UpdateProfileView(c echo.Context) error {
+	var profile models.Profile
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return utils.IdParamError
+	}
+
+	if err = c.Bind(&profile); err != nil {
+		return utils.RequestBodyError
+	}
+
+	userId := c.Request().Context().Value("user").(uint)
+	newProfile, httpErr := u.controller.UpdateProfile(userId, uint(id), &profile)
+	if httpErr != nil {
+		return httpErr
+	}
+
+	return c.JSON(200, newProfile)
+}
+
+// retrieve profile with given username
+func (u *UsersViews) GetProfileView(c echo.Context) error {
+	username := c.ParamValues()[0]
+	profile := u.controller.GetProfileByUsername(username)
+	if profile == nil {
+		return echo.NewHTTPError(404, "unable to find user")
+	}
+
+	currentUserId := c.Request().Context().Value("user").(uint)
+	if profile.UserID != currentUserId {
+		profile.FollowState = u.controller.GetFollowState(int(currentUserId), int(profile.UserID))
+	}
+
+	return c.JSON(200, profile)
+}
+
+// handle users follow and unfollow action
+func (u *UsersViews) FollowView(c echo.Context) error {
+	userToId, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return utils.IdParamError
+	}
+
+	userFromId := c.Request().Context().Value("user").(uint)
+	followed := u.controller.Follow(int(userFromId), userToId)
+	if !followed {
+		return echo.NewHTTPError(500, "unable to follow")
+	}
+
+	return c.JSON(200, "succesfully followed")
+}
+
+func (u *UsersViews) MeView(c echo.Context) error {
+	userId := c.Request().Context().Value("user").(uint)
+	profile := u.controller.GetProfileById(userId)
+	if profile == nil {
+		return echo.NewHTTPError(404, "profile does not exist")
+	}
+
+	return c.JSON(200, profile)
 }

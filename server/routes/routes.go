@@ -2,7 +2,9 @@ package routes
 
 import (
 	"blogv2/db"
+	pControllers "blogv2/posts/controllers"
 	pViews "blogv2/posts/views"
+	uControllers "blogv2/users/controllers"
 	"blogv2/users/views"
 	"log"
 
@@ -11,7 +13,7 @@ import (
 )
 
 func SetRoutes(e *echo.Echo) {
-	psql, err := db.Connect()
+	db, err := db.Connect()
 	if err != nil {
 		log.Fatal("unable to connect to postgres: ", err)
 	}
@@ -25,10 +27,8 @@ func SetRoutes(e *echo.Echo) {
 	// )
 
 	// handlers
-	usersViews := &views.UsersViews{DB: psql}
-	profileViews := &views.ProfileViews{DB: psql}
-	postsViews := &pViews.PostsViews{DB: psql}
-	commentViews := &pViews.CommentsViews{DB: psql}
+	usersViews := views.NewUsersViews(uControllers.NewUserController(db))
+	postsViews := pViews.NewPostsViews(pControllers.NewPostController(db))
 
 	// middlewares
 	e.Use(CORSconfig())
@@ -44,11 +44,11 @@ func SetRoutes(e *echo.Echo) {
 	e.POST("/logout", usersViews.LogoutView)
 
 	// profile views
-	e.GET("/me", profileViews.MeView)
-	e.POST("/profile", profileViews.CreateProfileView)
-	e.POST("/profile/:id/follow", profileViews.FollowView)
-	e.PATCH("/profile/:id", profileViews.UpdateProfileView)
-	e.GET("/profile/:username", profileViews.GetProfileView)
+	e.GET("/me", usersViews.MeView)
+	e.POST("/profile", usersViews.CreateProfileView)
+	e.POST("/profile/:id/follow", usersViews.FollowView)
+	e.PATCH("/profile/:id", usersViews.UpdateProfileView)
+	e.GET("/profile/:username", usersViews.GetProfileView)
 	e.GET("/profile/:id/posts", postsViews.GetUserPostsView)
 
 	// posts views
@@ -58,8 +58,8 @@ func SetRoutes(e *echo.Echo) {
 	e.DELETE("/posts/:id", postsViews.DeletePostView)
 	e.POST("/posts/:id/like", postsViews.ToggleLikeView)
 	e.PATCH("/posts/:id", postsViews.UpdatePostView)
-	e.POST("/posts/:id/comments", commentViews.AddCommentView)
-	e.GET("/posts/:id/comments", commentViews.GetPostCommentsView)
-	e.DELETE("/posts/:id/comments", commentViews.DeleteCommentView)
+	e.POST("/posts/:id/comments", postsViews.AddCommentView)
+	e.GET("/posts/:id/comments", postsViews.GetPostCommentsView)
+	e.DELETE("/posts/:id/comments", postsViews.DeleteCommentView)
 
 }
