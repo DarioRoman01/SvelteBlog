@@ -78,9 +78,7 @@ func (u *UsersViews) LoginView(c echo.Context) error {
 		return httpErr
 	}
 
-	session, _ := utils.Store.Get(c.Request(), "jwt")
-	session.Values["token"] = token
-	session.Save(c.Request(), c.Response().Writer)
+	utils.SetToken(c, token)
 	return c.JSON(200, user)
 }
 
@@ -110,8 +108,9 @@ func (u *UsersViews) VerifyAccountView(c echo.Context) error {
 		return echo.NewHTTPError(400, "invalid token")
 	}
 	id := int(claims["user_id"].(float64))
-	err = u.controller.UpdateUserStatus(id)
-	if err != nil {
+
+	httpErr := u.controller.UpdateUserStatus(id)
+	if httpErr != nil {
 		return echo.NewHTTPError(500, "unable to update user status")
 	}
 
@@ -120,9 +119,7 @@ func (u *UsersViews) VerifyAccountView(c echo.Context) error {
 		return httpErr
 	}
 
-	session, _ := utils.Store.Get(c.Request(), "jwt")
-	session.Values["token"] = sessionToken
-	session.Save(c.Request(), c.Response().Writer)
+	utils.SetToken(c, sessionToken)
 	return c.JSON(200, "account verified succsefully")
 }
 
@@ -188,11 +185,8 @@ func (u *UsersViews) ForgotPasswordView(c echo.Context) error {
 
 // delete the user session
 func (u *UsersViews) LogoutView(c echo.Context) error {
-	session, _ := utils.Store.Get(c.Request(), "jwt")
-	session.Options.MaxAge = -1
-	err := session.Save(c.Request(), c.Response().Writer)
-	if err != nil {
-		return echo.NewHTTPError(500, "unable to delete session")
+	if err := utils.Unabletoken(c); err != nil {
+		return err
 	}
 
 	return c.JSON(200, "succesfully logout")

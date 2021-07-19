@@ -18,14 +18,6 @@ func SetRoutes(e *echo.Echo) {
 		log.Fatal("unable to connect to postgres: ", err)
 	}
 
-	// psql.AutoMigrate(
-	// 	&models.User{},
-	// 	&models.Profile{},
-	// 	&pModels.Post{},
-	// 	&pModels.Comment{},
-	// 	&pModels.Like{},
-	// )
-
 	// handlers
 	usersViews := views.NewUsersViews(uControllers.NewUserController(db))
 	postsViews := pViews.NewPostsViews(pControllers.NewPostController(db))

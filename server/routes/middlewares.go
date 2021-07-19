@@ -19,7 +19,7 @@ func init() {
 }
 
 // routes to be skipped
-var SkipperRoutes = [5]string{"/login", "/register", "/forgot-password", "/change-password", "/verify"}
+var skipperRoutes = [5]string{"/login", "/register", "/forgot-password", "/change-password", "/verify"}
 
 /*
 IsAuth middleware check if the path has to be skipped,
@@ -29,20 +29,20 @@ of the requesting user more easyli.
 */
 func IsAuth(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		if contains(SkipperRoutes, c.Path()) {
+		if contains(skipperRoutes, c.Path()) {
 			return next(c)
 		}
 
-		session, _ := utils.Store.Get(c.Request(), "jwt")
-		strToken, exists := session.Values["token"]
-		if !exists {
-			return echo.NewHTTPError(401, "not authenticated")
+		strToken, err := utils.CheckToken(c)
+		if err != nil {
+			return err
 		}
 
 		claims := jwt.MapClaims{}
-		token, err := jwt.ParseWithClaims(strToken.(string), claims, func(t *jwt.Token) (interface{}, error) {
+		token, err := jwt.ParseWithClaims(strToken, claims, func(t *jwt.Token) (interface{}, error) {
 			return []byte(os.Getenv("JWT-SECRET")), nil
 		})
+
 		if err != nil {
 			return echo.NewHTTPError(423, "invalid token")
 		}

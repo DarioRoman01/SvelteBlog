@@ -39,9 +39,11 @@ func ValidateCursor(cursor string) *echo.HTTPError {
 }
 
 // variables that holds common requests errors
-var IdParamError = echo.NewHTTPError(400, "invalid id")
-var LimitError = echo.NewHTTPError(400, "invalid limit")
-var RequestBodyError = echo.NewHTTPError(423, "unable to parse request body")
+var (
+	IdParamError     = echo.NewHTTPError(400, "invalid id")
+	LimitError       = echo.NewHTTPError(400, "invalid limit")
+	RequestBodyError = echo.NewHTTPError(423, "unable to parse request body")
+)
 
 // return a bad request error with a field and
 // message for the error.
